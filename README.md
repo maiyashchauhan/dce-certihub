@@ -1,4 +1,4 @@
-# 🎓 EduCert Pro - College Certificate Generation & QR Verification System
+# DCE CertiHUb - College Certificate Generation & QR Verification System
 
 A complete full-stack web application designed for colleges and universities to create, manage, bulk generate, and verify high-resolution **Printable Landscape A4 PDF & Image certificates** for hackathons, workshops, conferences, academic merit, and internships.
 
