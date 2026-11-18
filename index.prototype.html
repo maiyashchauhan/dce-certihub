@@ -1,0 +1,2987 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DCE CertiHub - One Campus. Every Achievement.</title>
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Font Awesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+
+  <!-- Google Fonts for Certificates -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800;900&family=Great+Vibes&family=Montserrat:wght@400;500;600;700;800&family=Playfair+Display:ital,wght@0,600;0,700;0,800;0,900;1,600&display=swap"
+    rel="stylesheet">
+
+  <!-- Core Libraries: jsPDF, html-to-image, html2canvas, QRCode, XLSX, JSZip, Confetti -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html-to-image/1.11.11/html-to-image.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+
+  <style>
+    .font-cinzel {
+      font-family: 'Cinzel', serif;
+    }
+
+    .font-playfair {
+      font-family: 'Playfair Display', serif;
+    }
+
+    .font-script {
+      font-family: 'Great Vibes', cursive;
+    }
+
+    @media print {
+      body * {
+        visibility: hidden;
+      }
+
+      #certificate-canvas-container,
+      #certificate-canvas-container * {
+        visibility: visible;
+      }
+
+      #certificate-canvas-container {
+        position: fixed;
+        left: 0;
+        top: 0;
+        width: 297mm;
+        height: 210mm;
+        margin: 0;
+        padding: 0;
+      }
+
+      @page {
+        size: A4 landscape;
+        margin: 0;
+      }
+    }
+
+    .cert-shadow {
+      box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(0, 0, 0, 0.05);
+    }
+
+    /* Custom scrollbars */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: #f1f5f9;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 4px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: #94a3b8;
+    }
+  </style>
+</head>
+
+<body class="bg-slate-100 text-slate-800 font-sans antialiased min-h-screen flex flex-col">
+
+  <!-- ==================== TOP NAVIGATION ==================== -->
+  <header class="bg-slate-900 border-b border-slate-800 text-white sticky top-0 z-50 shadow-md">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex items-center justify-between h-16">
+
+        <!-- Brand -->
+        <div class="flex items-center gap-3 cursor-pointer" onclick="switchTab('dashboard')">
+          <div
+            class="w-10 h-10 rounded-xl bg-gradient-to-tr from-amber-500 to-amber-300 flex items-center justify-center shadow-lg shadow-amber-500/20 text-slate-950 font-black text-xl">
+            <i class="fa-solid fa-award"></i>
+          </div>
+          <div>
+            <div class="flex items-center gap-2">
+              <span
+                class="font-extrabold text-lg tracking-tight bg-gradient-to-r from-white via-slate-100 to-amber-200 bg-clip-text text-transparent">
+                DCE CertiHub
+              </span>
+              <span
+                class="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30">
+                Direct Browser Edition
+              </span>
+            </div>
+            <p class="text-[11px] text-slate-400 font-medium hidden sm:block">
+              One Campus. Every Achievement.
+            </p>
+          </div>
+        </div>
+
+        <!-- Role Badge & Fast Switcher -->
+        <div class="flex items-center gap-3">
+          <div
+            class="flex items-center gap-2.5 bg-slate-800/90 border border-slate-700/80 pl-3 pr-2 py-1.5 rounded-full">
+            <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
+            <div class="text-right">
+              <div id="current-user-name" class="text-xs font-bold text-slate-100 leading-none">Admin Portal</div>
+              <div id="current-user-role-text" class="text-[10px] text-amber-400 font-mono capitalize leading-tight">
+                College Authority • Exam & Events</div>
+            </div>
+            <button onclick="toggleUserRole()"
+              class="ml-1 text-[10px] bg-slate-700 hover:bg-slate-600 px-2 py-1 rounded-lg text-slate-200 font-semibold transition"
+              title="Switch between Admin & Faculty">
+              <i class="fa-solid fa-arrow-right-arrow-left mr-1"></i> Switch
+            </button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Navigation Tabs Bar -->
+    <div class="bg-slate-950/80 border-t border-slate-800 overflow-x-auto scrollbar-none">
+      <div class="max-w-7xl mx-auto px-4 flex space-x-1 sm:space-x-2 py-1.5 text-xs font-semibold">
+        <button onclick="switchTab('dashboard')" id="tab-btn-dashboard"
+          class="nav-btn flex items-center gap-2 px-3 py-1.5 rounded-lg bg-amber-500 text-slate-950 font-bold shadow">
+          <i class="fa-solid fa-chart-pie"></i><span>Dashboard</span>
+        </button>
+        <button onclick="switchTab('studio')" id="tab-btn-studio"
+          class="nav-btn flex items-center gap-2 px-3 py-1.5 rounded-lg text-slate-300 hover:bg-slate-800 hover:text-white">
+          <i class="fa-solid fa-pen-ruler"></i><span>Certificate Studio</span>
+        </button>
+        <button onclick="switchTab('bulk')" id="tab-btn-bulk"
+          class="nav-btn flex items-center gap-2 px-3 py-1.5 rounded-lg text-slate-300 hover:bg-slate-800 hover:text-white">
+          <i class="fa-solid fa-layer-group"></i><span>Bulk Excel Generator</span>
+        </button>
+        <button onclick="switchTab('events')" id="tab-btn-events"
+          class="nav-btn flex items-center gap-2 px-3 py-1.5 rounded-lg text-slate-300 hover:bg-slate-800 hover:text-white">
+          <i class="fa-solid fa-trophy"></i><span>Events & Winners</span>
+        </button>
+        <button onclick="switchTab('students')" id="tab-btn-students"
+          class="nav-btn flex items-center gap-2 px-3 py-1.5 rounded-lg text-slate-300 hover:bg-slate-800 hover:text-white">
+          <i class="fa-solid fa-graduation-cap"></i><span>Student Database</span>
+        </button>
+        <button onclick="switchTab('faculty')" id="tab-btn-faculty"
+          class="nav-btn flex items-center gap-2 px-3 py-1.5 rounded-lg text-slate-300 hover:bg-slate-800 hover:text-white">
+          <i class="fa-solid fa-users"></i><span>Faculty & Signatures</span>
+        </button>
+        <button onclick="switchTab('registry')" id="tab-btn-registry"
+          class="nav-btn flex items-center gap-2 px-3 py-1.5 rounded-lg text-slate-300 hover:bg-slate-800 hover:text-white">
+          <i class="fa-solid fa-file-shield"></i><span>Certificate Registry</span>
+        </button>
+        <button onclick="switchTab('verify')" id="tab-btn-verify"
+          class="nav-btn flex items-center gap-2 px-3 py-1.5 rounded-lg bg-emerald-950/60 text-emerald-300 border border-emerald-700/40 hover:bg-emerald-900/60">
+          <i class="fa-solid fa-shield-halved text-emerald-400"></i><span>QR Verify Portal</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+
+  <!-- ==================== MAIN CONTENT WRAPPER ==================== -->
+  <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+
+    <!-- ==================== VIEW 1: DASHBOARD ==================== -->
+    <section id="view-dashboard" class="space-y-6">
+
+      <!-- Welcome Banner -->
+      <div
+        class="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 rounded-3xl p-6 sm:p-8 text-white shadow-xl border border-slate-800 relative overflow-hidden">
+        <div class="relative z-10 max-w-3xl">
+          <div
+            class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/20 border border-amber-500/30 text-amber-300 text-xs font-semibold mb-3">
+            <i class="fa-solid fa-sparkles"></i>
+            <span>One Campus. Every Achievement.</span>
+          </div>
+          <h1 class="text-2xl sm:text-4xl font-black tracking-tight">
+            Printable Landscape Certificate System
+          </h1>
+          <p class="text-slate-300 text-xs sm:text-sm mt-2 leading-relaxed">
+            Generate print-ready A4 landscape PDF certificates, award 1st/2nd/3rd place winners, run bulk generation
+            from Excel/CSV spreadsheets, upload or draw digital signatures, and verify with live QR codes.
+          </p>
+
+          <div class="flex flex-wrap gap-3 mt-6">
+            <button onclick="switchTab('studio')"
+              class="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs sm:text-sm shadow-lg shadow-amber-500/20 transition hover:scale-105">
+              <i class="fa-solid fa-plus-circle"></i> Create Certificate
+            </button>
+            <button onclick="switchTab('bulk')"
+              class="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-semibold text-xs sm:text-sm transition">
+              <i class="fa-solid fa-file-excel text-emerald-400"></i> Bulk Excel/CSV Generator
+            </button>
+            <button onclick="switchTab('events')"
+              class="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-semibold text-xs sm:text-sm transition">
+              <i class="fa-solid fa-trophy text-amber-400"></i> Manage Events & Winners
+            </button>
+            <button onclick="switchTab('verify')"
+              class="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-emerald-950 hover:bg-emerald-900 text-emerald-300 border border-emerald-700/50 font-semibold text-xs sm:text-sm transition">
+              <i class="fa-solid fa-shield-halved text-emerald-400"></i> QR Code Verification
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Metrics Cards -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+          <div class="flex items-center justify-between">
+            <div>
+              <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Certificates Issued</p>
+              <h3 id="stat-total-certs" class="text-3xl font-extrabold text-slate-900 mt-1">0</h3>
+            </div>
+            <div class="w-12 h-12 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center text-xl">
+              <i class="fa-solid fa-award"></i>
+            </div>
+          </div>
+          <p class="text-[11px] text-emerald-600 font-medium mt-3 flex items-center gap-1">
+            <i class="fa-solid fa-check-circle"></i> With QR code & digital signatures
+          </p>
+        </div>
+
+        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+          <div class="flex items-center justify-between">
+            <div>
+              <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Events & Hackathons</p>
+              <h3 id="stat-total-events" class="text-3xl font-extrabold text-slate-900 mt-1">0</h3>
+            </div>
+            <div class="w-12 h-12 rounded-xl bg-blue-100 text-blue-700 flex items-center justify-center text-xl">
+              <i class="fa-solid fa-calendar-check"></i>
+            </div>
+          </div>
+          <p class="text-[11px] text-blue-600 font-medium mt-3">
+            With categorized participants & winners
+          </p>
+        </div>
+
+        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+          <div class="flex items-center justify-between">
+            <div>
+              <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Enrolled Students</p>
+              <h3 id="stat-total-students" class="text-3xl font-extrabold text-slate-900 mt-1">0</h3>
+            </div>
+            <div class="w-12 h-12 rounded-xl bg-indigo-100 text-indigo-700 flex items-center justify-center text-xl">
+              <i class="fa-solid fa-graduation-cap"></i>
+            </div>
+          </div>
+          <p class="text-[11px] text-indigo-600 font-medium mt-3">
+            Indexed by roll number & branch
+          </p>
+        </div>
+
+        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+          <div class="flex items-center justify-between">
+            <div>
+              <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Faculty Coordinators</p>
+              <h3 id="stat-total-faculty" class="text-3xl font-extrabold text-slate-900 mt-1">0</h3>
+            </div>
+            <div class="w-12 h-12 rounded-xl bg-purple-100 text-purple-700 flex items-center justify-center text-xl">
+              <i class="fa-solid fa-users"></i>
+            </div>
+          </div>
+          <p class="text-[11px] text-purple-600 font-medium mt-3">
+            Authorized digital signatories
+          </p>
+        </div>
+      </div>
+
+      <!-- Recent Certificates & Quick Actions Grid -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div class="lg:col-span-2 bg-white rounded-2xl p-6 border border-slate-200 shadow-sm">
+          <div class="flex items-center justify-between mb-4">
+            <div>
+              <h2 class="text-base font-bold text-slate-900">Recently Generated Certificates</h2>
+              <p class="text-xs text-slate-500">Live database records with instant PDF download & verification</p>
+            </div>
+            <button onclick="switchTab('registry')" class="text-xs font-bold text-amber-600 hover:text-amber-700">
+              View All <i class="fa-solid fa-arrow-right ml-1"></i>
+            </button>
+          </div>
+
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs">
+              <thead class="bg-slate-50 text-slate-600 font-semibold border-b border-slate-200">
+                <tr>
+                  <th class="py-2.5 px-3">Certificate ID</th>
+                  <th class="py-2.5 px-3">Recipient Name</th>
+                  <th class="py-2.5 px-3">Event / Program</th>
+                  <th class="py-2.5 px-3">Category</th>
+                  <th class="py-2.5 px-3 text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="dashboard-recent-table" class="divide-y divide-slate-100">
+                <!-- Injected by JS -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Quick Download Cards -->
+        <div class="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm space-y-4">
+          <h3 class="text-sm font-bold text-slate-900">Sample Templates & Tools</h3>
+
+          <div class="space-y-2.5 text-xs">
+            <button onclick="downloadSampleCSV()"
+              class="w-full flex items-center justify-between p-3 rounded-xl border border-slate-200 hover:border-amber-400 hover:bg-amber-50/50 transition text-left">
+              <div class="flex items-center gap-2.5">
+                <i class="fa-solid fa-file-csv text-emerald-600 text-lg"></i>
+                <div>
+                  <div class="font-bold text-slate-900">Download Sample CSV</div>
+                  <div class="text-[10px] text-slate-500">Ready template for bulk generation</div>
+                </div>
+              </div>
+              <i class="fa-solid fa-download text-slate-400"></i>
+            </button>
+
+            <button onclick="downloadSampleExcel()"
+              class="w-full flex items-center justify-between p-3 rounded-xl border border-slate-200 hover:border-amber-400 hover:bg-amber-50/50 transition text-left">
+              <div class="flex items-center gap-2.5">
+                <i class="fa-solid fa-file-excel text-blue-600 text-lg"></i>
+                <div>
+                  <div class="font-bold text-slate-900">Download Sample Excel (.xlsx)</div>
+                  <div class="text-[10px] text-slate-500">Spreadsheet with sample hackathon rows</div>
+                </div>
+              </div>
+              <i class="fa-solid fa-download text-slate-400"></i>
+            </button>
+
+            <button onclick="switchTab('studio')"
+              class="w-full flex items-center justify-between p-3 rounded-xl border border-slate-200 hover:border-amber-400 hover:bg-amber-50/50 transition text-left">
+              <div class="flex items-center gap-2.5">
+                <i class="fa-solid fa-pen-nib text-amber-600 text-lg"></i>
+                <div>
+                  <div class="font-bold text-slate-900">Certificate Designer Studio</div>
+                  <div class="text-[10px] text-slate-500">Live preview in 3 landscape templates</div>
+                </div>
+              </div>
+              <i class="fa-solid fa-arrow-right text-slate-400"></i>
+            </button>
+          </div>
+
+          <div class="pt-3 border-t border-slate-100 flex items-center gap-2 text-xs">
+            <button onclick="loadSampleDemoData()"
+              class="flex-1 py-2 px-3 rounded-xl bg-slate-100 hover:bg-amber-100 hover:text-amber-900 text-slate-700 font-bold text-[11px] transition text-center"
+              title="Load sample demo records to test features">
+              <i class="fa-solid fa-wand-magic-sparkles mr-1"></i> Load Demo Data
+            </button>
+            <button onclick="resetAllDatabaseData()"
+              class="py-2 px-3 rounded-xl bg-slate-100 hover:bg-rose-100 hover:text-rose-900 text-slate-600 font-bold text-[11px] transition text-center"
+              title="Reset all records to clean state">
+              <i class="fa-solid fa-trash-can mr-1"></i> Reset
+            </button>
+          </div>
+        </div>
+      </div>
+
+    </section>
+
+
+    <!-- ==================== VIEW 2: CERTIFICATE STUDIO ==================== -->
+    <section id="view-studio" class="space-y-6 hidden">
+
+      <!-- Studio Header Bar -->
+      <div
+        class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div>
+          <div class="flex items-center gap-2">
+            <h1 class="text-xl sm:text-2xl font-extrabold text-slate-900">Certificate Studio & Designer</h1>
+            <span
+              class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-100 text-amber-800 border border-amber-300">
+              Live Preview Engine
+            </span>
+          </div>
+          <p class="text-xs sm:text-sm text-slate-500 mt-0.5">
+            Real-time interactive editor with instant A4 Landscape PDF, PNG, JPG and Print generation.
+          </p>
+        </div>
+
+        <!-- Export Toolbar -->
+        <div class="flex flex-wrap items-center gap-2 w-full sm:w-auto">
+          <button onclick="saveCurrentCertificate()"
+            class="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs shadow-md shadow-amber-500/20 transition active:scale-95">
+            <i class="fa-solid fa-floppy-disk"></i> Save & Register
+          </button>
+          <button id="btn-download-pdf" onclick="exportCertificate('pdf')"
+            class="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs shadow-md transition active:scale-95">
+            <i class="fa-solid fa-file-pdf text-amber-400"></i> Download PDF
+          </button>
+          <button onclick="window.print()"
+            class="flex-1 sm:flex-none flex items-center justify-center gap-2 px-3.5 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs shadow-md transition active:scale-95"
+            title="Print or Save via Browser native PDF engine">
+            <i class="fa-solid fa-print"></i> Print / Save PDF
+          </button>
+          <button onclick="exportCertificate('png')"
+            class="p-2.5 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-xl transition text-xs font-bold"
+            title="Download PNG">
+            PNG
+          </button>
+          <button onclick="exportCertificate('jpg')"
+            class="p-2.5 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-xl transition text-xs font-bold"
+            title="Download JPG">
+            JPG
+          </button>
+          <button onclick="window.print()"
+            class="p-2.5 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-xl transition text-xs"
+            title="Print Certificate">
+            <i class="fa-solid fa-print"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Studio 2-Column Split -->
+      <div class="grid grid-cols-1 xl:grid-cols-12 gap-6 items-start">
+
+        <!-- Controls Column (5 cols) -->
+        <div
+          class="xl:col-span-5 bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4 max-h-[88vh] overflow-y-auto">
+
+          <!-- 1. Template Picker -->
+          <div>
+            <label class="block text-xs font-bold text-slate-800 uppercase tracking-wider mb-2">
+              1. Choose Landscape Template
+            </label>
+            <div class="grid grid-cols-2 gap-2 text-xs">
+
+              <button onclick="setTemplate('classic')" id="tpl-btn-classic"
+                class="p-2.5 rounded-xl border border-slate-200 hover:border-slate-300 font-bold text-slate-900 text-left">
+                <div>🏛️ Classic Academic</div>
+                <div class="text-[10px] text-slate-500 font-normal">Traditional Ornate Border</div>
+              </button>
+
+              <button onclick="setTemplate('minimal')" id="tpl-btn-minimal"
+                class="p-2.5 rounded-xl border border-slate-200 hover:border-slate-300 font-bold text-slate-900 text-left">
+                <div>💼 Minimal Corporate</div>
+                <div class="text-[10px] text-slate-500 font-normal">Swiss Internship Layout</div>
+              </button>
+              <button onclick="setTemplate('cultural')" id="tpl-btn-cultural"
+                class="p-2.5 rounded-xl border border-slate-200 hover:border-slate-300 font-bold text-slate-900 text-left col-span-2">
+                <div>🏆 Vibrant Cultural / Sports</div>
+                <div class="text-[10px] text-slate-500 font-normal">Crimson & Gold Festive Border</div>
+              </button>
+            </div>
+          </div>
+
+          <!-- 2. Citation Presets -->
+          <div class="pt-2 border-t border-slate-100">
+            <label class="block text-xs font-bold text-slate-800 uppercase tracking-wider mb-1.5">
+              2. Fast Award Citation Presets
+            </label>
+            <div class="flex flex-wrap gap-1.5 text-xs">
+              <button onclick="applyPreset('winner1')"
+                class="px-2.5 py-1 rounded-lg bg-amber-100 hover:bg-amber-200 text-amber-900 font-bold border border-amber-300">
+                🏆 1st Place
+              </button>
+              <button onclick="applyPreset('winner2')"
+                class="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-800 font-semibold border border-slate-300">
+                🥈 2nd Place
+              </button>
+              <button onclick="applyPreset('winner3')"
+                class="px-2.5 py-1 rounded-lg bg-orange-100 hover:bg-orange-200 text-orange-900 font-semibold border border-orange-300">
+                🥉 3rd Place
+              </button>
+              <button onclick="applyPreset('participation')"
+                class="px-2.5 py-1 rounded-lg bg-emerald-100 hover:bg-emerald-200 text-emerald-900 font-semibold border border-emerald-300">
+                🎖️ Participation
+              </button>
+              <button onclick="applyPreset('internship')"
+                class="px-2.5 py-1 rounded-lg bg-indigo-100 hover:bg-indigo-200 text-indigo-900 font-semibold border border-indigo-300">
+                💼 Internship
+              </button>
+              <button onclick="applyPreset('merit')"
+                class="px-2.5 py-1 rounded-lg bg-purple-100 hover:bg-purple-200 text-purple-900 font-semibold border border-purple-300">
+                ⭐ Merit Honor
+              </button>
+            </div>
+          </div>
+
+          <!-- 3. Recipient Details -->
+          <div class="space-y-3 pt-2 border-t border-slate-100">
+            <div class="flex items-center justify-between">
+              <label class="text-xs font-bold text-slate-800 uppercase tracking-wider">
+                3. Recipient Details
+              </label>
+              <select id="studio-autofill-student" onchange="autofillFromStudent(this.value)"
+                class="text-[11px] border border-slate-300 rounded-lg px-2 py-1 bg-slate-50">
+                <option value="">Autofill from Student DB</option>
+              </select>
+            </div>
+
+            <div>
+              <label class="text-[11px] font-semibold text-slate-600">Student / Recipient Full Name *</label>
+              <input type="text" id="inp-recipient-name" value="" placeholder="Enter Student / Recipient Full Name"
+                oninput="updateLivePreview()"
+                class="w-full text-xs font-bold px-3 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-amber-500 focus:outline-none" />
+            </div>
+
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label class="text-[11px] font-semibold text-slate-600">Roll Number / ID</label>
+                <input type="text" id="inp-roll-number" value="" placeholder="e.g. 28100" oninput="updateLivePreview()"
+                  class="w-full text-xs font-mono uppercase px-3 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-amber-500 focus:outline-none" />
+              </div>
+              <div>
+                <label class="text-[11px] font-semibold text-slate-600">Course / Program</label>
+                <input type="text" id="inp-course" value="" placeholder="e.g. B.Tech Computer Science"
+                  oninput="updateLivePreview()"
+                  class="w-full text-xs px-3 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-amber-500 focus:outline-none" />
+              </div>
+            </div>
+
+            <div>
+              <label class="text-[11px] font-semibold text-slate-600">Department / Branch</label>
+              <input type="text" id="inp-department" value=""
+                placeholder="e.g. Department of Computer Science & Engineering" oninput="updateLivePreview()"
+                class="w-full text-xs px-3 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-amber-500 focus:outline-none" />
+            </div>
+          </div>
+
+          <!-- 4. Event & College Details -->
+          <div class="space-y-3 pt-2 border-t border-slate-100">
+            <div class="flex items-center justify-between">
+              <label class="text-xs font-bold text-slate-800 uppercase tracking-wider">
+                4. Event & College Details
+              </label>
+              <select id="studio-autofill-event" onchange="autofillFromEvent(this.value)"
+                class="text-[11px] border border-slate-300 rounded-lg px-2 py-1 bg-slate-50 max-w-[180px] truncate">
+                <option value="">Autofill from Events</option>
+              </select>
+            </div>
+
+            <div>
+              <label class="text-[11px] font-semibold text-slate-600">College / Organization Name *</label>
+              <input type="text" id="inp-organization" value="Dronacharya College of Engineering"
+                placeholder="e.g. Dronacharya College of Engineering" oninput="updateLivePreview()"
+                class="w-full text-xs font-bold px-3 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-amber-500 focus:outline-none" />
+            </div>
+
+            <div>
+              <label class="text-[11px] font-semibold text-slate-600">Event / Hackathon Name *</label>
+              <input type="text" id="inp-event-name" value="" placeholder="e.g. National Hackathon / Annual Fest 2026"
+                oninput="updateLivePreview()"
+                class="w-full text-xs px-3 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-amber-500 focus:outline-none" />
+            </div>
+
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label class="text-[11px] font-semibold text-slate-600">Certificate Type</label>
+                <select id="inp-cert-type" onchange="updateLivePreview()"
+                  class="w-full text-xs px-3 py-2 border border-slate-300 rounded-xl bg-white focus:ring-2 focus:ring-amber-500 focus:outline-none">
+                  <option value="participation">Participation</option>
+                  <option value="winner">Winner / Excellence</option>
+                  <option value="internship">Internship Completion</option>
+                  <option value="achievement">Achievement</option>
+                  <option value="merit">Academic Merit</option>
+                  <option value="completion">Course Completion</option>
+                </select>
+              </div>
+              <div>
+                <label class="text-[11px] font-semibold text-slate-600">Award Rank / Role</label>
+                <input type="text" id="inp-rank-role" value="" placeholder="e.g. 1st Place / Participant / Excellence"
+                  oninput="updateLivePreview()"
+                  class="w-full text-xs px-3 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-amber-500 focus:outline-none" />
+              </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label class="text-[11px] font-semibold text-slate-600">Event Date</label>
+                <input type="date" id="inp-event-date" value="2026-03-15" oninput="updateLivePreview()"
+                  class="w-full text-xs px-3 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-amber-500 focus:outline-none" />
+              </div>
+              <div>
+                <label class="text-[11px] font-semibold text-slate-600">Issue Date</label>
+                <input type="date" id="inp-issue-date" value="2026-03-16" oninput="updateLivePreview()"
+                  class="w-full text-xs px-3 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-amber-500 focus:outline-none" />
+              </div>
+            </div>
+
+            <div>
+              <label class="text-[11px] font-semibold text-slate-600">Citation / Commendation Text</label>
+              <textarea id="inp-citation-text" rows="3"
+                placeholder="Enter custom citation or commendation statement (or click a quick preset button above)..."
+                oninput="updateLivePreview()"
+                class="w-full text-xs px-3 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-amber-500 focus:outline-none"></textarea>
+            </div>
+          </div>
+
+          <!-- 5. Signatories & Digital Signature Pad -->
+          <div class="space-y-3 pt-2 border-t border-slate-100">
+            <div class="flex items-center justify-between">
+              <label class="text-xs font-bold text-slate-800 uppercase tracking-wider">
+                5. Signatories & Signatures
+              </label>
+              <button onclick="openSignaturePadModal()"
+                class="text-[11px] text-amber-600 hover:text-amber-700 font-bold flex items-center gap-1">
+                <i class="fa-solid fa-signature"></i> Draw Signature
+              </button>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label class="text-[11px] font-semibold text-slate-600">Left Signatory (Coordinator)</label>
+                <input type="text" id="inp-coord-name" value="" placeholder="Coordinator / Convener Name"
+                  oninput="updateLivePreview()" class="w-full text-xs px-3 py-2 border border-slate-300 rounded-xl" />
+                <input type="text" id="inp-coord-title" value="" placeholder="Designation (e.g. Event Convener)"
+                  oninput="updateLivePreview()"
+                  class="w-full text-xs px-3 py-1 border border-slate-300 rounded-xl mt-1 text-slate-500" />
+              </div>
+              <div>
+                <label class="text-[11px] font-semibold text-slate-600">Right Signatory (Dean/Principal)</label>
+                <input type="text" id="inp-auth-name" value="" placeholder="Authorized Signatory (Dean / Principal)"
+                  oninput="updateLivePreview()" class="w-full text-xs px-3 py-2 border border-slate-300 rounded-xl" />
+                <input type="text" id="inp-auth-title" value="" placeholder="Designation (e.g. Dean & Principal)"
+                  oninput="updateLivePreview()"
+                  class="w-full text-xs px-3 py-1 border border-slate-300 rounded-xl mt-1 text-slate-500" />
+              </div>
+            </div>
+
+            <!-- Upload Custom Assets -->
+            <div class="grid grid-cols-3 gap-2 pt-1 text-[10px]">
+              <div>
+                <label class="font-medium text-slate-600 block mb-1">Custom Logo</label>
+                <label
+                  class="flex items-center justify-center gap-1 p-2 border border-slate-300 rounded-lg cursor-pointer bg-slate-50 hover:bg-slate-100">
+                  <i class="fa-solid fa-upload"></i> Logo
+                  <input type="file" accept="image/*" class="hidden" onchange="handleImageUpload(event, 'logo')" />
+                </label>
+              </div>
+              <div>
+                <label class="font-medium text-slate-600 block mb-1">Left Signature</label>
+                <label
+                  class="flex items-center justify-center gap-1 p-2 border border-slate-300 rounded-lg cursor-pointer bg-slate-50 hover:bg-slate-100">
+                  <i class="fa-solid fa-upload"></i> Sig 1
+                  <input type="file" accept="image/*" class="hidden" onchange="handleImageUpload(event, 'sig1')" />
+                </label>
+              </div>
+              <div>
+                <label class="font-medium text-slate-600 block mb-1">Right Signature</label>
+                <label
+                  class="flex items-center justify-center gap-1 p-2 border border-slate-300 rounded-lg cursor-pointer bg-slate-50 hover:bg-slate-100">
+                  <i class="fa-solid fa-upload"></i> Sig 2
+                  <input type="file" accept="image/*" class="hidden" onchange="handleImageUpload(event, 'sig2')" />
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <!-- 6. Unique Certificate ID -->
+          <div class="pt-2 border-t border-slate-100">
+            <div class="flex items-center justify-between">
+              <label class="text-xs font-bold text-slate-800 uppercase tracking-wider">
+                6. Unique Certificate ID
+              </label>
+              <button onclick="generateNewCertId()" class="text-[11px] text-amber-600 hover:text-amber-700 font-bold">
+                <i class="fa-solid fa-arrows-rotate"></i> Regenerate
+              </button>
+            </div>
+            <input type="text" id="inp-cert-id" value="CERT-2026-0001" placeholder="e.g. CERT-2026-0001"
+              oninput="updateLivePreview()"
+              class="w-full text-xs font-mono font-bold px-3 py-2 border border-slate-300 rounded-xl mt-1 uppercase bg-slate-50" />
+          </div>
+
+        </div>
+
+        <!-- Live Canvas Preview Column (7 cols) -->
+        <div
+          class="xl:col-span-7 bg-slate-900 rounded-3xl p-5 shadow-2xl border border-slate-800 flex flex-col items-center">
+
+          <!-- Zoom Bar -->
+          <div class="w-full flex items-center justify-between pb-3 border-b border-slate-800 text-slate-300 text-xs">
+            <div class="flex items-center gap-2">
+              <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
+              <span class="font-bold">A4 Landscape Canvas (297mm × 210mm)</span>
+            </div>
+            <div class="flex items-center gap-2">
+              <button onclick="adjustZoom(-0.08)"
+                class="p-1.5 text-slate-400 hover:text-white bg-slate-800 rounded-lg"><i
+                  class="fa-solid fa-minus"></i></button>
+              <span id="zoom-level-text" class="font-mono text-slate-400">70%</span>
+              <button onclick="adjustZoom(0.08)"
+                class="p-1.5 text-slate-400 hover:text-white bg-slate-800 rounded-lg"><i
+                  class="fa-solid fa-plus"></i></button>
+              <button onclick="resetZoom()" class="p-1.5 text-slate-400 hover:text-white bg-slate-800 rounded-lg"><i
+                  class="fa-solid fa-expand"></i></button>
+            </div>
+          </div>
+
+          <!-- Canvas Container -->
+          <div class="w-full flex justify-center overflow-auto py-4 scrollbar-thin">
+            <div id="zoom-wrapper"
+              style="transform: scale(0.70); transform-origin: top center; transition: transform 0.15s ease;">
+
+              <!-- CERTIFICATE CANVAS (1122px x 793px standard A4 Landscape at 96 DPI) -->
+              <div id="certificate-canvas-container"
+                class="relative select-none bg-white text-slate-800 cert-shadow overflow-hidden"
+                style="width: 1122px; height: 793px; min-width: 1122px; min-height: 793px;">
+                <!-- DYNAMIC CONTENT RENDERED BY JS -->
+              </div>
+
+            </div>
+          </div>
+
+          <div class="w-full pt-3 border-t border-slate-800 flex items-center justify-between text-xs text-slate-400">
+            <div>Print Ready • Vector Clean Borders</div>
+            <div id="preview-cert-id-tag" class="font-mono text-amber-400">ID: CERT-2026-0001</div>
+          </div>
+        </div>
+
+      </div>
+
+    </section>
+
+
+    <!-- ==================== VIEW 3: BULK GENERATOR ==================== -->
+    <section id="view-bulk" class="space-y-6 hidden">
+
+      <div
+        class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div>
+          <div class="flex items-center gap-2">
+            <h1 class="text-xl sm:text-2xl font-extrabold text-slate-900">Bulk Certificate Generator</h1>
+            <span
+              class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-indigo-100 text-indigo-800 border border-indigo-200">
+              Excel / CSV Batch Engine
+            </span>
+          </div>
+          <p class="text-xs sm:text-sm text-slate-500 mt-0.5">
+            Upload an Excel or CSV file to generate hundreds of authentic certificates with unique IDs and QR
+            verification.
+          </p>
+        </div>
+
+        <div class="flex items-center gap-2">
+          <button onclick="downloadSampleCSV()"
+            class="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs transition">
+            <i class="fa-solid fa-file-csv text-emerald-600"></i> Sample CSV
+          </button>
+          <button onclick="downloadSampleExcel()"
+            class="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs transition">
+            <i class="fa-solid fa-file-excel text-blue-600"></i> Sample Excel
+          </button>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+
+        <!-- Upload Form (5 cols) -->
+        <div class="lg:col-span-5 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+          <h2 class="text-xs font-bold uppercase text-slate-800 tracking-wider">
+            1. Select Spreadsheet File
+          </h2>
+
+          <div
+            class="border-2 border-dashed border-slate-300 hover:border-amber-500 rounded-2xl p-6 text-center cursor-pointer transition bg-slate-50/50">
+            <input type="file" id="bulk-file-input" accept=".csv, .xlsx, .xls" class="hidden"
+              onchange="handleBulkFileParsed(event)" />
+            <label for="bulk-file-input" class="cursor-pointer block">
+              <i class="fa-solid fa-file-excel text-emerald-600 text-4xl mb-2"></i>
+              <p id="bulk-filename-text" class="text-xs font-bold text-slate-800">
+                Click to browse Excel (.xlsx) or CSV file
+              </p>
+              <p class="text-[10px] text-slate-500 mt-1">
+                Required columns: Name, Roll Number, Email, Department, Event, Type, Rank
+              </p>
+            </label>
+          </div>
+
+          <div class="space-y-3 pt-2 border-t border-slate-100 text-xs">
+            <div>
+              <label class="font-semibold text-slate-700">Default Template Style</label>
+              <select id="bulk-template-select"
+                class="w-full px-3 py-2 border border-slate-300 rounded-xl mt-1 bg-white">
+
+                <option value="classic">Classic Academic</option>
+
+                <option value="minimal">Minimal Corporate / Internship</option>
+                <option value="cultural">Vibrant Cultural & Sports</option>
+              </select>
+            </div>
+            <div>
+              <label class="font-semibold text-slate-700">College / Organization Name</label>
+              <input type="text" id="bulk-org-name" value="Dronacharya College of Engineering"
+                placeholder="College / Organization Name"
+                class="w-full px-3 py-2 border border-slate-300 rounded-xl mt-1" />
+            </div>
+          </div>
+
+          <button onclick="processBulkGeneration()" id="bulk-generate-btn"
+            class="w-full py-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-sm shadow-md transition disabled:opacity-50">
+            <i class="fa-solid fa-bolt mr-1"></i> Generate All Certificates
+          </button>
+        </div>
+
+        <!-- Preview Rows Table (7 cols) -->
+        <div class="lg:col-span-7 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+          <div class="flex items-center justify-between">
+            <h3 class="text-xs font-bold uppercase text-slate-800 tracking-wider">
+              Parsed Spreadsheet Records (<span id="bulk-rows-count">0</span>)
+            </h3>
+            <span class="text-[11px] text-slate-500">Live preview before creation</span>
+          </div>
+
+          <div class="overflow-x-auto max-h-[460px] border border-slate-200 rounded-xl">
+            <table class="w-full text-left text-xs">
+              <thead class="bg-slate-50 text-slate-700 font-semibold sticky top-0 border-b border-slate-200">
+                <tr>
+                  <th class="py-2.5 px-3">#</th>
+                  <th class="py-2.5 px-3">Recipient Name</th>
+                  <th class="py-2.5 px-3">Roll No</th>
+                  <th class="py-2.5 px-3">Event</th>
+                  <th class="py-2.5 px-3">Award / Rank</th>
+                </tr>
+              </thead>
+              <tbody id="bulk-preview-table-body" class="divide-y divide-slate-100">
+                <tr>
+                  <td colspan="5" class="py-12 text-center text-slate-400">
+                    No spreadsheet loaded yet. Click "Sample CSV" or upload a file.
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </div>
+
+    </section>
+
+
+    <!-- ==================== VIEW 4: EVENTS & HACKATHONS ==================== -->
+    <section id="view-events" class="space-y-6 hidden">
+
+      <div
+        class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div>
+          <div class="flex items-center gap-2">
+            <h1 class="text-xl sm:text-2xl font-extrabold text-slate-900">Events, Hackathons & Winners</h1>
+            <span
+              class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-blue-100 text-blue-800 border border-blue-200">
+              Competition Hub
+            </span>
+          </div>
+          <p class="text-xs sm:text-sm text-slate-500 mt-0.5">
+            Manage participants, teams, and designate 1st, 2nd & 3rd place winners for auto-certification.
+          </p>
+        </div>
+
+        <button onclick="openModal('create-event-modal')"
+          class="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs shadow-md transition">
+          <i class="fa-solid fa-plus"></i> Create New Event
+        </button>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+
+        <!-- Left: Event Cards (4 cols) -->
+        <div class="lg:col-span-4 space-y-3">
+          <h2 class="text-xs font-bold uppercase text-slate-700 tracking-wider">All College Events</h2>
+          <div id="events-list-container" class="space-y-3 max-h-[75vh] overflow-y-auto">
+            <!-- Injected by JS -->
+          </div>
+        </div>
+
+        <!-- Right: Event Participants & Winners (8 cols) -->
+        <div id="selected-event-panel"
+          class="lg:col-span-8 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-6">
+          <!-- Dynamic Content -->
+        </div>
+
+      </div>
+
+    </section>
+
+
+    <!-- ==================== VIEW 5: STUDENT DATABASE ==================== -->
+    <section id="view-students" class="space-y-6 hidden">
+
+      <div
+        class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div>
+          <div class="flex items-center gap-2">
+            <h1 class="text-xl sm:text-2xl font-extrabold text-slate-900">Student Database Registry</h1>
+            <span id="students-badge-count"
+              class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-indigo-100 text-indigo-800 border border-indigo-200">
+              0 Enrolled
+            </span>
+          </div>
+          <p class="text-xs sm:text-sm text-slate-500 mt-0.5">
+            Manage authorized student profiles with roll numbers, departments, and issue certificates with 1 click.
+          </p>
+        </div>
+
+        <button onclick="openModal('add-student-modal')"
+          class="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs shadow-md transition">
+          <i class="fa-solid fa-plus"></i> Add New Student
+        </button>
+      </div>
+
+      <!-- Search & Department Filter -->
+      <div
+        class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-col md:flex-row items-center justify-between gap-3">
+        <div class="w-full md:w-96 relative">
+          <i class="fa-solid fa-magnifying-glass text-slate-400 absolute left-3.5 top-3 text-xs"></i>
+          <input type="text" id="student-search-input" oninput="renderStudentsTable()"
+            placeholder="Search by Roll No, Student Name..."
+            class="w-full text-xs pl-9 pr-4 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-amber-500 focus:outline-none" />
+        </div>
+        <select id="student-dept-filter" onchange="renderStudentsTable()"
+          class="text-xs px-3 py-2 border border-slate-300 rounded-xl bg-white text-slate-700">
+          <option value="All">All Departments</option>
+          <option value="Computer Science & Engineering">Computer Science & Engineering</option>
+          <option value="Computer Science & Information Technology">Computer Science & Information Technology</option>
+          <option value="Electronics & Communication">Electronics & Communication</option>
+          <option value="Mechanical Engineering">Mechanical Engineering</option>
+          <option value="Electrical & Electronics">Electrical & Electronics</option>
+          <option value="Artificial Intelligence & Machine Learning">Artificial Intelligence & Machine Learning</option>
+        </select>
+      </div>
+
+      <!-- Table -->
+      <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs">
+            <thead class="bg-slate-50 text-slate-700 font-semibold border-b border-slate-200">
+              <tr>
+                <th class="py-3 px-4">Roll Number</th>
+                <th class="py-3 px-4">Student Name</th>
+                <th class="py-3 px-4">Program & Year</th>
+                <th class="py-3 px-4">Department</th>
+                <th class="py-3 px-4">Contact Email</th>
+                <th class="py-3 px-4 text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="students-table-body" class="divide-y divide-slate-100">
+              <!-- Dynamically injected -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </section>
+
+
+    <!-- ==================== VIEW 6: FACULTY & COORDINATORS ==================== -->
+    <section id="view-faculty" class="space-y-6 hidden">
+
+      <div
+        class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div>
+          <div class="flex items-center gap-2">
+            <h1 class="text-xl sm:text-2xl font-extrabold text-slate-900">Faculty & Coordinator Signatures</h1>
+            <span
+              class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-purple-100 text-purple-800 border border-purple-200">
+              Authorized Signatories
+            </span>
+          </div>
+          <p class="text-xs sm:text-sm text-slate-500 mt-0.5">
+            Manage faculty profiles, employee IDs, and digital signatures for automated certificate placement.
+          </p>
+        </div>
+
+        <button onclick="openModal('add-faculty-modal')"
+          class="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs shadow-md transition">
+          <i class="fa-solid fa-plus"></i> Add Faculty Member
+        </button>
+      </div>
+
+      <div id="faculty-cards-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+        <!-- Injected by JS -->
+      </div>
+
+    </section>
+
+
+    <!-- ==================== VIEW 7: CERTIFICATE REGISTRY ==================== -->
+    <section id="view-registry" class="space-y-6 hidden">
+
+      <div
+        class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div>
+          <div class="flex items-center gap-2">
+            <h1 class="text-xl sm:text-2xl font-extrabold text-slate-900">Certificate Master Registry</h1>
+            <span id="registry-count-badge"
+              class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-100 text-amber-800 border border-amber-300">
+              0 Records
+            </span>
+          </div>
+          <p class="text-xs sm:text-sm text-slate-500 mt-0.5">
+            Searchable log of all generated certificates with QR verification links and validity revocation controls.
+          </p>
+        </div>
+      </div>
+
+      <!-- Search & Filters -->
+      <div
+        class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-col md:flex-row items-center justify-between gap-3">
+        <div class="w-full md:w-96 relative">
+          <i class="fa-solid fa-magnifying-glass text-slate-400 absolute left-3.5 top-3 text-xs"></i>
+          <input type="text" id="registry-search-input" oninput="renderRegistryTable()"
+            placeholder="Search by ID, Student Name, Event..."
+            class="w-full text-xs pl-9 pr-4 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-amber-500 focus:outline-none" />
+        </div>
+        <select id="registry-type-filter" onchange="renderRegistryTable()"
+          class="text-xs px-3 py-2 border border-slate-300 rounded-xl bg-white text-slate-700">
+          <option value="all">All Certificate Types</option>
+          <option value="winner">Winner / Excellence</option>
+          <option value="participation">Participation</option>
+          <option value="internship">Internship Completion</option>
+          <option value="achievement">Achievement</option>
+          <option value="merit">Academic Merit</option>
+        </select>
+      </div>
+
+      <!-- Table -->
+      <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs">
+            <thead class="bg-slate-50 text-slate-700 font-semibold border-b border-slate-200">
+              <tr>
+                <th class="py-3 px-4">Certificate ID</th>
+                <th class="py-3 px-4">Recipient Name</th>
+                <th class="py-3 px-4">Event & Date</th>
+                <th class="py-3 px-4">Category & Rank</th>
+                <th class="py-3 px-4">Status</th>
+                <th class="py-3 px-4 text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="registry-table-body" class="divide-y divide-slate-100">
+              <!-- Dynamically injected -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </section>
+
+
+    <!-- ==================== VIEW 8: QR VERIFY PORTAL ==================== -->
+    <section id="view-verify" class="space-y-6 hidden max-w-5xl mx-auto">
+
+      <div
+        class="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 rounded-3xl p-8 text-white text-center shadow-xl border border-slate-800">
+        <div
+          class="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-xs font-bold mb-4">
+          <i class="fa-solid fa-shield-halved text-emerald-400"></i>
+          <span>Official Public Accreditation Registry</span>
+        </div>
+
+        <h1 class="text-2xl sm:text-4xl font-black tracking-tight">
+          Verify College Certificate Authenticity
+        </h1>
+        <p class="text-slate-300 text-xs sm:text-sm max-w-2xl mx-auto mt-2">
+          Verify certificates issued by the college examination and event board. Enter the Certificate ID or scan the QR
+          code to verify.
+        </p>
+
+        <!-- Search Bar -->
+        <form onsubmit="handleVerifySubmit(event)" class="max-w-xl mx-auto mt-6 flex gap-2">
+          <input type="text" id="verify-search-input" placeholder="Enter Certificate ID (e.g. CERT-2026-0001)"
+            class="w-full text-sm font-mono uppercase bg-slate-800/90 border border-slate-700 text-white px-4 py-3 rounded-2xl focus:ring-2 focus:ring-amber-500 focus:outline-none" />
+          <button type="submit"
+            class="px-6 py-3 rounded-2xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-sm shadow-lg transition">
+            Verify
+          </button>
+        </form>
+
+        <div id="verify-quick-hints"
+          class="flex flex-wrap items-center justify-center gap-2 mt-4 text-[11px] text-slate-400">
+          <span>Enter any Certificate ID issued in the master registry to check real-time verification and validity
+            status.</span>
+        </div>
+      </div>
+
+      <!-- Verification Result Container -->
+      <div id="verify-result-panel" class="hidden">
+        <!-- Dynamically injected with Verified details, credentials, and live rendering -->
+      </div>
+
+    </section>
+
+  </main>
+
+
+  <!-- ==================== MODALS ==================== -->
+
+  <!-- Modal: Draw Digital Signature Pad -->
+  <div id="sig-pad-modal"
+    class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 hidden">
+    <div class="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-200">
+      <div class="flex items-center justify-between mb-3">
+        <h3 class="text-base font-bold text-slate-900">Draw Digital Signature</h3>
+        <button onclick="closeModal('sig-pad-modal')" class="text-slate-400 hover:text-slate-600">
+          <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+      </div>
+      <p class="text-xs text-slate-500 mb-3">
+        Use your mouse, trackpad, or touch screen to draw your official signature.
+      </p>
+
+      <div class="border-2 border-slate-300 rounded-2xl overflow-hidden bg-slate-50">
+        <canvas id="signature-canvas" width="400" height="150" class="w-full h-36 bg-white cursor-crosshair"></canvas>
+      </div>
+
+      <div class="flex items-center justify-between mt-4">
+        <button onclick="clearSignatureCanvas()"
+          class="px-3 py-1.5 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100">
+          <i class="fa-solid fa-eraser mr-1"></i> Clear
+        </button>
+        <div class="flex gap-2">
+          <button onclick="applySignatureTo('sig1')"
+            class="px-3.5 py-2 rounded-xl text-xs font-bold bg-slate-800 hover:bg-slate-700 text-white shadow">
+            Set as Left Sig
+          </button>
+          <button onclick="applySignatureTo('sig2')"
+            class="px-3.5 py-2 rounded-xl text-xs font-bold bg-amber-500 hover:bg-amber-400 text-slate-950 shadow">
+            Set as Right Sig
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Create Event -->
+  <div id="create-event-modal"
+    class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 hidden">
+    <div class="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-200">
+      <h3 class="text-lg font-bold text-slate-900 mb-4">Create New Event / Hackathon</h3>
+      <form onsubmit="handleCreateEventSubmit(event)" class="space-y-3 text-xs">
+        <div>
+          <label class="font-semibold text-slate-700">Event Title *</label>
+          <input type="text" id="modal-ev-title" required placeholder="e.g. National Hackathon 2026"
+            class="w-full px-3 py-2 border border-slate-300 rounded-xl mt-1" />
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="font-semibold text-slate-700">Category</label>
+            <select id="modal-ev-category" class="w-full px-3 py-2 border border-slate-300 rounded-xl mt-1 bg-white">
+              <option value="Hackathon">Hackathon</option>
+              <option value="Workshop">Workshop</option>
+              <option value="Tech Fest">Tech Fest</option>
+              <option value="Cultural">Cultural</option>
+              <option value="Sports">Sports</option>
+              <option value="Internship">Internship</option>
+            </select>
+          </div>
+          <div>
+            <label class="font-semibold text-slate-700">Event Date</label>
+            <input type="date" id="modal-ev-date" required value="2026-03-15"
+              class="w-full px-3 py-2 border border-slate-300 rounded-xl mt-1" />
+          </div>
+        </div>
+        <div>
+          <label class="font-semibold text-slate-700">Department</label>
+          <input type="text" id="modal-ev-dept" value="Computer Science & Engineering"
+            class="w-full px-3 py-2 border border-slate-300 rounded-xl mt-1" />
+        </div>
+        <div>
+          <label class="font-semibold text-slate-700">Coordinator Name</label>
+          <input type="text" id="modal-ev-coord" value="" placeholder="Event Coordinator Name"
+            class="w-full px-3 py-2 border border-slate-300 rounded-xl mt-1" />
+        </div>
+        <div class="flex justify-end gap-2 pt-3 border-t">
+          <button type="button" onclick="closeModal('create-event-modal')"
+            class="px-4 py-2 rounded-xl text-slate-600 hover:bg-slate-100">Cancel</button>
+          <button type="submit" class="px-5 py-2 rounded-xl bg-amber-500 font-bold text-slate-950">Save Event</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal: Add Student -->
+  <div id="add-student-modal"
+    class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 hidden">
+    <div class="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-200">
+      <h3 class="text-lg font-bold text-slate-900 mb-4">Add Student to Database</h3>
+      <form onsubmit="handleAddStudentSubmit(event)" class="space-y-3 text-xs">
+        <div>
+          <label class="font-semibold text-slate-700">Roll Number *</label>
+          <input type="text" id="modal-st-roll" required placeholder="e.g. 22BCS110"
+            class="w-full px-3 py-2 border border-slate-300 rounded-xl mt-1 font-mono uppercase" />
+        </div>
+        <div>
+          <label class="font-semibold text-slate-700">Full Name *</label>
+          <input type="text" id="modal-st-name" required placeholder="e.g. Devansh Joshi"
+            class="w-full px-3 py-2 border border-slate-300 rounded-xl mt-1" />
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="font-semibold text-slate-700">Course</label>
+            <input type="text" id="modal-st-course" value="B.Tech CSE"
+              class="w-full px-3 py-2 border border-slate-300 rounded-xl mt-1" />
+          </div>
+          <div>
+            <label class="font-semibold text-slate-700">Year</label>
+            <select id="modal-st-year" class="w-full px-3 py-2 border border-slate-300 rounded-xl mt-1 bg-white">
+              <option value="1st Year">1st Year</option>
+              <option value="2nd Year">2nd Year</option>
+              <option value="3rd Year" selected>3rd Year</option>
+              <option value="4th Year">4th Year</option>
+            </select>
+          </div>
+        </div>
+        <div>
+          <label class="font-semibold text-slate-700">Department</label>
+          <input type="text" id="modal-st-dept" value="Computer Science & Engineering"
+            class="w-full px-3 py-2 border border-slate-300 rounded-xl mt-1" />
+        </div>
+        <div>
+          <label class="font-semibold text-slate-700">Email Address</label>
+          <input type="email" id="modal-st-email" placeholder="devansh@college.edu"
+            class="w-full px-3 py-2 border border-slate-300 rounded-xl mt-1" />
+        </div>
+        <div class="flex justify-end gap-2 pt-3 border-t">
+          <button type="button" onclick="closeModal('add-student-modal')"
+            class="px-4 py-2 rounded-xl text-slate-600 hover:bg-slate-100">Cancel</button>
+          <button type="submit" class="px-5 py-2 rounded-xl bg-amber-500 font-bold text-slate-950">Add Student</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal: Add Faculty -->
+  <div id="add-faculty-modal"
+    class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 hidden">
+    <div class="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-200">
+      <h3 class="text-lg font-bold text-slate-900 mb-4">Add Faculty / Signatory</h3>
+      <form onsubmit="handleAddFacultySubmit(event)" class="space-y-3 text-xs">
+        <div>
+          <label class="font-semibold text-slate-700">Employee ID *</label>
+          <input type="text" id="modal-fac-id" required placeholder="FAC-CSE-105"
+            class="w-full px-3 py-2 border border-slate-300 rounded-xl mt-1 font-mono uppercase" />
+        </div>
+        <div>
+          <label class="font-semibold text-slate-700">Full Name *</label>
+          <input type="text" id="modal-fac-name" required placeholder="Dr. Rajiv Malhotra"
+            class="w-full px-3 py-2 border border-slate-300 rounded-xl mt-1" />
+        </div>
+        <div>
+          <label class="font-semibold text-slate-700">Department</label>
+          <input type="text" id="modal-fac-dept" value="Computer Science & Engineering"
+            class="w-full px-3 py-2 border border-slate-300 rounded-xl mt-1" />
+        </div>
+        <div>
+          <label class="font-semibold text-slate-700">Designation</label>
+          <input type="text" id="modal-fac-title" value="Associate Professor"
+            class="w-full px-3 py-2 border border-slate-300 rounded-xl mt-1" />
+        </div>
+        <div>
+          <label class="font-semibold text-slate-700">Email Address</label>
+          <input type="email" id="modal-fac-email" placeholder="rajiv.m@college.edu"
+            class="w-full px-3 py-2 border border-slate-300 rounded-xl mt-1" />
+        </div>
+        <div class="flex justify-end gap-2 pt-3 border-t">
+          <button type="button" onclick="closeModal('add-faculty-modal')"
+            class="px-4 py-2 rounded-xl text-slate-600 hover:bg-slate-100">Cancel</button>
+          <button type="submit" class="px-5 py-2 rounded-xl bg-amber-500 font-bold text-slate-950">Add Faculty</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+
+  <!-- ==================== JAVASCRIPT APPLICATION CORE ==================== -->
+  <script>
+    // Asset Data URIs
+    const DEFAULT_LOGO_SVG = `data:image/svg+xml;utf8,${encodeURIComponent(`
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100" height="100">
+        <circle cx="50" cy="50" r="46" fill="#0f172a" stroke="#D4AF37" stroke-width="3"/>
+        <circle cx="50" cy="50" r="41" fill="none" stroke="#D4AF37" stroke-width="1" stroke-dasharray="2,2"/>
+        <path d="M 50 25 L 68 33 L 50 41 L 32 33 Z" fill="#D4AF37"/>
+        <polygon points="68,34 68,44 65,44 65,35" fill="#D4AF37"/>
+        <path d="M 40 46 L 50 42 L 60 46 L 60 62 L 50 58 L 40 62 Z" fill="#1e293b" stroke="#D4AF37" stroke-width="2"/>
+        <line x1="50" y1="42" x2="50" y2="58" stroke="#D4AF37" stroke-width="2"/>
+        <polygon points="50,66 52,72 58,72 53,76 55,82 50,78 45,82 47,76 42,72 48,72" fill="#D4AF37"/>
+      </svg>
+    `)}`;
+
+    const DEFAULT_SEAL_SVG = `data:image/svg+xml;utf8,${encodeURIComponent(`
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" width="120" height="120">
+        <polygon points="40,80 30,115 50,105 70,115 60,80" fill="#991b1b"/>
+        <polygon points="60,80 50,115 70,105 90,115 80,80" fill="#b91c1c"/>
+        <circle cx="60" cy="55" r="45" fill="#eab308"/>
+        <circle cx="60" cy="55" r="38" fill="none" stroke="#713f12" stroke-width="1.5" stroke-dasharray="3,2"/>
+        <circle cx="60" cy="55" r="30" fill="#fef08a"/>
+        <text x="60" y="47" font-family="serif" font-size="8" font-weight="bold" fill="#713f12" text-anchor="middle">OFFICIAL</text>
+        <text x="60" y="58" font-family="sans-serif" font-size="11" font-weight="900" fill="#713f12" text-anchor="middle">★ SEAL ★</text>
+        <text x="60" y="68" font-family="serif" font-size="7" font-weight="bold" fill="#713f12" text-anchor="middle">VERIFIED</text>
+      </svg>
+    `)}`;
+
+    const DEFAULT_SIG_PRINCIPAL = `data:image/svg+xml;utf8,${encodeURIComponent(`
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 80" width="240" height="80">
+        <path d="M 20 50 Q 40 15 60 45 T 90 40 T 120 48 Q 140 20 155 55 T 180 35 Q 200 45 220 30" fill="none" stroke="#0f172a" stroke-width="2.5" stroke-linecap="round"/>
+        <path d="M 35 60 Q 90 55 170 58" fill="none" stroke="#0f172a" stroke-width="1.5"/>
+      </svg>
+    `)}`;
+
+    const DEFAULT_SIG_COORD = `data:image/svg+xml;utf8,${encodeURIComponent(`
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 80" width="240" height="80">
+        <path d="M 25 45 Q 45 20 65 35 T 95 30 Q 120 10 135 48 T 165 40 T 205 32" fill="none" stroke="#1e293b" stroke-width="2.2" stroke-linecap="round"/>
+        <path d="M 45 55 Q 110 50 190 52" fill="none" stroke="#1e293b" stroke-width="1.6"/>
+      </svg>
+    `)}`;
+
+    // Database Initialization (Clean Initial State - Zero Mock Data)
+    const STORAGE_KEY = 'DCE_CERTIHUB_DB_CLEAN';
+    // Clear legacy mock caches if present in user browser
+    try {
+      localStorage.removeItem('EDUCERT_PRO_DB');
+      localStorage.removeItem('EDUCERT_PRO_DB_CLEAN_V2');
+      localStorage.removeItem('cert_studio_draft');
+    } catch (e) { }
+
+    let DB = {
+      userRole: 'admin',
+      activeTemplate: 'gold',
+      currentZoom: 0.70,
+      customLogo: null,
+      customSig1: null,
+      customSig2: null,
+      students: [],
+      faculty: [],
+      events: [],
+      certificates: []
+    };
+
+    // Load Local Storage cleanly
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        // Ensure no old dummy mock records leak in
+        if (parsed.certificates && parsed.certificates.some(c => c.name === 'Aarav Patel')) {
+          localStorage.removeItem(STORAGE_KEY);
+        } else {
+          DB = { ...DB, ...parsed };
+        }
+      } catch (e) {
+        console.error('Storage parse error:', e);
+      }
+    }
+
+    function saveDB() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(DB));
+      updateDashboardStats();
+    }
+
+    // Role Switching
+    function toggleUserRole() {
+      DB.userRole = DB.userRole === 'admin' ? 'faculty' : 'admin';
+      const nameEl = document.getElementById('current-user-name');
+      const roleEl = document.getElementById('current-user-role-text');
+      if (DB.userRole === 'admin') {
+        nameEl.innerText = 'Admin Portal';
+        roleEl.innerText = 'College Authority • Exam & Events';
+      } else {
+        nameEl.innerText = 'Faculty Coordinator';
+        roleEl.innerText = 'Authorized Signatory • Department';
+      }
+      saveDB();
+    }
+
+    // Clean Demo Sample Generator (Optional 1-click test button)
+    function loadSampleDemoData() {
+      if (DB.certificates.length > 0 || DB.students.length > 0) {
+        if (!confirm('This will load sample demo data for preview. Continue?')) return;
+      }
+      DB.students = [
+        { id: 1, roll: '24BCS101', name: 'Rahul Sharma', course: 'B.Tech CSE', year: '3rd Year', dept: 'Computer Science & Engineering', email: 'rahul.s@college.edu' },
+        { id: 2, roll: '24BCS102', name: 'Pooja Verma', course: 'B.Tech CSE', year: '3rd Year', dept: 'Computer Science & Engineering', email: 'pooja.v@college.edu' },
+        { id: 3, roll: '24ECE045', name: 'Kavita Nair', course: 'B.Tech ECE', year: '2nd Year', dept: 'Electronics & Communication', email: 'kavita.n@college.edu' }
+      ];
+      DB.faculty = [
+        { id: 1, empId: 'FAC-DIR-001', name: 'Principal / Director', dept: 'Administration', designation: 'Head of Institution', email: 'principal@college.edu', isCoord: true, sig: DEFAULT_SIG_PRINCIPAL },
+        { id: 2, empId: 'FAC-CSE-102', name: 'Convener / Coordinator', dept: 'Computer Science', designation: 'Event Chair', email: 'convener@college.edu', isCoord: true, sig: DEFAULT_SIG_COORD }
+      ];
+      DB.events = [
+        {
+          id: 1,
+          title: 'National Innovation Hackathon 2026',
+          category: 'Hackathon',
+          date: new Date().toISOString().split('T')[0],
+          dept: 'Computer Science & Engineering',
+          coord: 'Convener / Coordinator',
+          participants: [
+            { id: 101, name: 'Rahul Sharma', roll: '24BCS101', type: 'individual', teamName: '', rank: '1st Place Winner', status: 'Winner' },
+            { id: 102, name: 'Pooja Verma', roll: '24BCS102', type: 'individual', teamName: '', rank: '2nd Place Winner', status: 'Winner' },
+            { id: 103, name: 'Kavita Nair', roll: '24ECE045', type: 'individual', teamName: '', rank: 'Participant', status: 'Participant' }
+          ]
+        }
+      ];
+      DB.certificates = [
+        {
+          id: 'CERT-2026-DEMO-01',
+          name: 'Rahul Sharma',
+          roll: '24BCS101',
+          dept: 'Computer Science & Engineering',
+          course: 'B.Tech CSE',
+          event: 'National Innovation Hackathon 2026',
+          date: new Date().toISOString().split('T')[0],
+          issueDate: new Date().toISOString().split('T')[0],
+          org: 'Dronacharya College of Engineering',
+          type: 'winner',
+          rank: '1st Place Winner',
+          template: 'gold',
+          coord: '',
+          coordTitle: 'Event Convener',
+          auth: '',
+          authTitle: 'Principal',
+          citation: 'In recognition of outstanding technical innovation and achieving 1st Position in National Innovation Hackathon 2026.',
+          isValid: true
+        }
+      ];
+      saveDB();
+      renderStudentsTable();
+      renderFacultyCards();
+      renderEventsView();
+      renderRegistryTable();
+      updateDashboardStats();
+      populateAutofills();
+      confetti({ particleCount: 70, spread: 60 });
+      alert('Sample demo data loaded successfully!');
+    }
+
+    function resetAllDatabaseData() {
+      if (!confirm('Are you sure you want to completely clear all database records? This cannot be undone.')) return;
+      DB.students = [];
+      DB.faculty = [];
+      DB.events = [];
+      DB.certificates = [];
+      saveDB();
+      renderStudentsTable();
+      renderFacultyCards();
+      renderEventsView();
+      renderRegistryTable();
+      updateDashboardStats();
+      populateAutofills();
+      alert('All database tables reset to a clean state!');
+    }
+
+    // Tab Navigation
+    function switchTab(tabId) {
+      const views = ['dashboard', 'studio', 'bulk', 'events', 'students', 'faculty', 'registry', 'verify'];
+      views.forEach(v => {
+        const el = document.getElementById(`view-${v}`);
+        const btn = document.getElementById(`tab-btn-${v}`);
+        if (el) el.classList.toggle('hidden', v !== tabId);
+        if (btn) {
+          if (v === tabId) {
+            btn.className = 'nav-btn flex items-center gap-2 px-3 py-1.5 rounded-lg bg-amber-500 text-slate-950 font-bold shadow';
+          } else {
+            btn.className = 'nav-btn flex items-center gap-2 px-3 py-1.5 rounded-lg text-slate-300 hover:bg-slate-800 hover:text-white';
+          }
+        }
+      });
+
+      if (tabId === 'dashboard') updateDashboardStats();
+      if (tabId === 'studio') updateLivePreview();
+      if (tabId === 'events') renderEventsView();
+      if (tabId === 'students') renderStudentsTable();
+      if (tabId === 'faculty') renderFacultyCards();
+      if (tabId === 'registry') renderRegistryTable();
+    }
+
+    // Modal Helpers
+    function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
+    function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
+
+    // ==========================================
+    // CERTIFICATE RENDERING ENGINE
+    // ==========================================
+    function setTemplate(tplId) {
+      DB.activeTemplate = tplId;
+      ['gold', 'classic', 'modern', 'minimal', 'cultural'].forEach(t => {
+        const btn = document.getElementById(`tpl-btn-${t}`);
+        if (btn) {
+          if (t === tplId) {
+            btn.className = 'p-2.5 rounded-xl border border-amber-500 bg-amber-50 font-bold text-slate-900 text-left';
+          } else {
+            btn.className = 'p-2.5 rounded-xl border border-slate-200 hover:border-slate-300 font-bold text-slate-900 text-left';
+          }
+        }
+      });
+      updateLivePreview();
+    }
+
+    function updateLivePreview() {
+      const container = document.getElementById('certificate-canvas-container');
+      if (!container) return;
+
+      const name = (document.getElementById('inp-recipient-name')?.value || '').trim() || '[RECIPIENT FULL NAME]';
+      const roll = (document.getElementById('inp-roll-number')?.value || '').trim();
+      const course = (document.getElementById('inp-course')?.value || '').trim();
+      const dept = (document.getElementById('inp-department')?.value || '').trim();
+      const org = (document.getElementById('inp-organization')?.value || '').trim() || 'Dronacharya College of Engineering';
+      const eventName = (document.getElementById('inp-event-name')?.value || '').trim() || '[EVENT / COMPETITION NAME]';
+      const certType = document.getElementById('inp-cert-type')?.value || 'participation';
+      const rank = (document.getElementById('inp-rank-role')?.value || '').trim() || (certType === 'winner' ? '1st Place Winner' : '');
+      const issueDate = document.getElementById('inp-issue-date')?.value || new Date().toISOString().split('T')[0];
+      const citation = (document.getElementById('inp-citation-text')?.value || '').trim() || 'In recognition of active dedication, valuable contribution, and commendable participation demonstrated during the event.';
+      const coordName = (document.getElementById('inp-coord-name')?.value || '').trim();
+      const coordTitle = (document.getElementById('inp-coord-title')?.value || '').trim() || 'Event Coordinator';
+      const authName = (document.getElementById('inp-auth-name')?.value || '').trim();
+      const authTitle = (document.getElementById('inp-auth-title')?.value || '').trim() || 'Principal';
+      const certId = (document.getElementById('inp-cert-id')?.value || '').trim() || 'CERT-2026-0001';
+
+      const tagEl = document.getElementById('preview-cert-id-tag');
+      if (tagEl) tagEl.innerText = `ID: ${certId}`;
+
+      const tpl = DB.activeTemplate;
+      const logo = DB.customLogo || DEFAULT_LOGO_SVG;
+      const sig1 = DB.customSig1 || DEFAULT_SIG_COORD;
+      const sig2 = DB.customSig2 || DEFAULT_SIG_PRINCIPAL;
+
+      let title = 'CERTIFICATE OF PARTICIPATION';
+      let sub = 'THIS IS PROUDLY PRESENTED TO';
+      if (certType === 'winner') { title = 'CERTIFICATE OF EXCELLENCE'; sub = `CONFERRED FOR SECURING ${rank.toUpperCase()}`; }
+      else if (certType === 'internship') { title = 'CERTIFICATE OF INTERNSHIP'; sub = 'CERTIFYING THE SUCCESSFUL COMPLETION OF INDUSTRIAL TRAINING'; }
+      else if (certType === 'achievement') { title = 'CERTIFICATE OF ACHIEVEMENT'; sub = 'IN HONOUR OF OUTSTANDING MERIT & INNOVATION'; }
+      else if (certType === 'merit') { title = 'CERTIFICATE OF MERIT'; sub = 'AWARDED FOR DEMONSTRATING ACADEMIC DISTINCTION'; }
+      else if (certType === 'completion') { title = 'CERTIFICATE OF COMPLETION'; sub = 'IN RECOGNITION OF COURSE COMPLETION'; }
+
+      let html = '';
+
+      // TEMPLATE 1: PRESTIGE GOLD
+      if (tpl === 'gold') {
+        html = `
+          <div class="w-full h-full p-8 relative flex flex-col justify-between bg-gradient-to-b from-slate-900 via-slate-950 to-slate-900 text-amber-100">
+            <div class="absolute inset-4 border-[4px] border-amber-500/80 pointer-events-none"></div>
+            <div class="absolute inset-6 border border-amber-300/30 pointer-events-none"></div>
+            <div class="absolute top-4 left-4 w-4 h-4 bg-amber-400 rotate-45 pointer-events-none"></div>
+            <div class="absolute top-4 right-4 w-4 h-4 bg-amber-400 rotate-45 pointer-events-none"></div>
+            <div class="absolute bottom-4 left-4 w-4 h-4 bg-amber-400 rotate-45 pointer-events-none"></div>
+            <div class="absolute bottom-4 right-4 w-4 h-4 bg-amber-400 rotate-45 pointer-events-none"></div>
+
+            <div class="relative z-10 text-center pt-2">
+              <div class="flex items-center justify-center gap-4 mb-2">
+                <img src="${logo}" class="w-16 h-16 object-contain" />
+                <div>
+                  <h2 class="font-cinzel tracking-widest text-lg font-black uppercase text-amber-200">${org}</h2>
+                  <p class="text-[11px] tracking-wider text-amber-400/90 uppercase font-semibold">HONOR ROLL • DISTINGUISHED ACADEMIC EXCELLENCE</p>
+                </div>
+              </div>
+              <div class="my-2 flex items-center justify-center gap-3">
+                <div class="h-[1px] w-32 bg-gradient-to-r from-transparent via-amber-400 to-transparent"></div>
+                <span class="text-amber-400 text-xs">✦ ✦ ✦</span>
+                <div class="h-[1px] w-32 bg-gradient-to-l from-transparent via-amber-400 to-transparent"></div>
+              </div>
+              <h1 class="font-cinzel text-3xl font-bold tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-amber-200 via-amber-400 to-yellow-100 uppercase">${title}</h1>
+              <p class="font-playfair text-xs italic tracking-widest text-amber-300/80 mt-1 uppercase">${sub}</p>
+            </div>
+
+            <div class="relative z-10 text-center px-16 my-auto">
+              <div class="my-3">
+                <span class="font-playfair text-4xl font-bold text-white tracking-wider border-b-2 border-amber-400/80 pb-1 px-8 inline-block">${name}</span>
+              </div>
+              <div class="flex items-center justify-center gap-6 text-xs text-amber-200/90 font-serif mb-2">
+                ${roll ? `<span>Enrollment ID: <strong>${roll}</strong></span>` : ''}
+                ${dept ? `<span>Department: <strong>${dept}</strong></span>` : ''}
+                ${course ? `<span>Program: <strong>${course}</strong></span>` : ''}
+              </div>
+              <p class="font-playfair text-base text-slate-200 leading-relaxed max-w-3xl mx-auto px-4 italic">${citation}</p>
+              ${rank ? `<div class="mt-3 inline-block bg-gradient-to-r from-amber-600 via-yellow-500 to-amber-600 text-slate-950 font-cinzel font-black text-xs px-6 py-1.5 rounded-full uppercase tracking-widest shadow-lg">★ ${rank} ★</div>` : ''}
+            </div>
+
+            <div class="relative z-10 px-12 pb-4 pt-2 flex items-end justify-between">
+              <div class="text-center w-52">
+                <div class="h-14 flex items-end justify-center mb-1"><img src="${sig1}" class="max-h-12 object-contain filter invert brightness-200" /></div>
+                <div class="border-t border-amber-400/50 pt-1">
+                  <p class="font-cinzel font-bold text-xs text-amber-100 uppercase">${coordName}</p>
+                  <p class="text-[10px] text-amber-300/80">${coordTitle}</p>
+                </div>
+              </div>
+
+              <div class="flex flex-col items-center justify-center gap-1">
+                <img src="${DEFAULT_SEAL_SVG}" class="w-20 h-20 object-contain drop-shadow" />
+                <div class="text-[10px] font-mono text-amber-200 bg-amber-950/80 px-2 py-0.5 rounded border border-amber-600/40">REGISTRY: ${certId}</div>
+              </div>
+
+              <div class="flex items-end gap-5">
+                <div class="text-center flex flex-col items-center">
+                  <div id="qrcode-box" class="p-1 bg-white rounded shadow"></div>
+                  <span class="text-[8px] text-amber-300 font-mono mt-0.5">SCAN & VERIFY</span>
+                </div>
+                <div class="text-center w-52">
+                  <div class="h-14 flex items-end justify-center mb-1"><img src="${sig2}" class="max-h-12 object-contain filter invert brightness-200" /></div>
+                  <div class="border-t border-amber-400/50 pt-1">
+                    <p class="font-cinzel font-bold text-xs text-amber-100 uppercase">${authName}</p>
+                    <p class="text-[10px] text-amber-300/80">${authTitle}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        `;
+      }
+
+      // TEMPLATE 2: CLASSIC ACADEMIC
+      else if (tpl === 'classic') {
+        html = `
+          <div class="w-full h-full p-8 relative flex flex-col justify-between bg-gradient-to-br from-amber-50/40 via-white to-amber-50/30 text-slate-800">
+            <div class="absolute inset-4 border-[6px] border-amber-800/80 pointer-events-none"></div>
+            <div class="absolute inset-6 border border-amber-600/40 pointer-events-none"></div>
+            <div class="absolute inset-7 border-[2px] border-amber-700/60 pointer-events-none"></div>
+            <div class="absolute top-8 left-8 w-12 h-12 border-t-4 border-l-4 border-amber-700 pointer-events-none"></div>
+            <div class="absolute top-8 right-8 w-12 h-12 border-t-4 border-r-4 border-amber-700 pointer-events-none"></div>
+            <div class="absolute bottom-8 left-8 w-12 h-12 border-b-4 border-l-4 border-amber-700 pointer-events-none"></div>
+            <div class="absolute bottom-8 right-8 w-12 h-12 border-b-4 border-r-4 border-amber-700 pointer-events-none"></div>
+
+            <div class="relative z-10 text-center pt-3">
+              <div class="flex items-center justify-center gap-4 mb-2">
+                <img src="${logo}" class="w-16 h-16 object-contain" />
+                <div>
+                  <h2 class="font-cinzel tracking-widest text-xl font-bold uppercase text-slate-800">${org}</h2>
+                  <p class="text-xs tracking-wider text-amber-900/80 uppercase font-medium">Autonomous Institution • Accredited & Recognized</p>
+                </div>
+              </div>
+              <h1 class="font-cinzel text-3xl font-bold tracking-wider text-amber-900 uppercase mt-2">${title}</h1>
+              <p class="font-playfair text-xs italic tracking-widest text-slate-600 mt-1 uppercase">${sub}</p>
+            </div>
+
+            <div class="relative z-10 text-center px-16 my-auto">
+              <div class="my-3">
+                <span class="font-playfair text-4xl font-extrabold text-slate-900 tracking-wide border-b-2 border-amber-700/60 pb-1 px-8 inline-block">${name}</span>
+              </div>
+              <div class="flex items-center justify-center gap-6 text-sm text-slate-700 font-medium mb-3">
+                ${roll ? `<span><strong>Roll No:</strong> ${roll}</span>` : ''}
+                ${dept ? `<span><strong>Dept:</strong> ${dept}</span>` : ''}
+                ${course ? `<span><strong>Course:</strong> ${course}</span>` : ''}
+              </div>
+              <p class="font-playfair text-base text-slate-700 leading-relaxed max-w-3xl mx-auto px-4 italic">${citation}</p>
+              ${rank ? `<div class="mt-3 inline-block bg-amber-100 border border-amber-300 text-amber-950 font-cinzel font-bold text-sm px-6 py-1 rounded-full uppercase">★ ${rank} ★</div>` : ''}
+            </div>
+
+            <div class="relative z-10 px-12 pb-4 pt-2 flex items-end justify-between">
+              <div class="text-center w-52">
+                <div class="h-14 flex items-end justify-center mb-1"><img src="${sig1}" class="max-h-12 object-contain" /></div>
+                <div class="border-t border-slate-700 pt-1">
+                  <p class="font-cinzel font-bold text-xs text-slate-900 uppercase">${coordName}</p>
+                  <p class="text-[10px] text-slate-600">${coordTitle}</p>
+                </div>
+              </div>
+
+              <div class="flex flex-col items-center justify-center gap-1">
+                <img src="${DEFAULT_SEAL_SVG}" class="w-20 h-20 object-contain drop-shadow" />
+                <div class="text-[10px] font-mono text-slate-700 bg-amber-50 px-2 py-0.5 rounded border border-amber-200">ID: ${certId}</div>
+              </div>
+
+              <div class="flex items-end gap-5">
+                <div class="text-center flex flex-col items-center">
+                  <div id="qrcode-box" class="p-1 bg-white border border-slate-300 rounded shadow-sm"></div>
+                  <span class="text-[8px] text-slate-500 font-mono mt-0.5">SCAN TO VERIFY</span>
+                </div>
+                <div class="text-center w-52">
+                  <div class="h-14 flex items-end justify-center mb-1"><img src="${sig2}" class="max-h-12 object-contain" /></div>
+                  <div class="border-t border-slate-700 pt-1">
+                    <p class="font-cinzel font-bold text-xs text-slate-900 uppercase">${authName}</p>
+                    <p class="text-[10px] text-slate-600">${authTitle}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        `;
+      }
+
+      // TEMPLATE 3: MODERN TECH
+      else if (tpl === 'modern') {
+        html = `
+          <div class="w-full h-full p-8 relative flex flex-col justify-between bg-slate-950 text-white">
+            <div class="absolute inset-4 border border-cyan-500/40 pointer-events-none"></div>
+            <div class="absolute inset-6 border border-indigo-500/20 pointer-events-none"></div>
+            <div class="absolute top-4 left-4 w-6 h-6 border-t-2 border-l-2 border-cyan-400 pointer-events-none"></div>
+            <div class="absolute top-4 right-4 w-6 h-6 border-t-2 border-r-2 border-cyan-400 pointer-events-none"></div>
+            <div class="absolute bottom-4 left-4 w-6 h-6 border-b-2 border-l-2 border-cyan-400 pointer-events-none"></div>
+            <div class="absolute bottom-4 right-4 w-6 h-6 border-b-2 border-r-2 border-cyan-400 pointer-events-none"></div>
+
+            <div class="relative z-10 text-center pt-2">
+              <div class="flex items-center justify-between px-10 mb-2">
+                <div class="flex items-center gap-3">
+                  <img src="${logo}" class="w-14 h-14 object-contain filter drop-shadow-[0_0_8px_rgba(6,182,212,0.4)]" />
+                  <div class="text-left">
+                    <h3 class="font-mono text-xs text-cyan-400 tracking-wider">OFFICIAL RECOGNITION</h3>
+                    <h2 class="font-bold text-sm text-slate-200">${org}</h2>
+                  </div>
+                </div>
+                <span class="font-mono text-[10px] text-cyan-300 bg-cyan-950/80 border border-cyan-800 px-3 py-1 rounded">IDENTIFIER: ${certId}</span>
+              </div>
+              <h1 class="text-4xl font-black tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-indigo-200 to-purple-400 uppercase mt-4">${title}</h1>
+              <p class="font-mono text-xs text-cyan-400/80 mt-1 uppercase">${sub}</p>
+            </div>
+
+            <div class="relative z-10 text-center px-16 my-auto">
+              <div class="my-2">
+                <span class="text-4xl font-extrabold text-white tracking-wide border-b-2 border-cyan-500/70 pb-1 px-8 inline-block">${name}</span>
+              </div>
+              <div class="flex items-center justify-center gap-6 text-xs text-slate-300 font-mono my-2">
+                ${roll ? `<span class="bg-slate-900 px-2.5 py-1 rounded border border-slate-800">Roll: ${roll}</span>` : ''}
+                ${dept ? `<span class="bg-slate-900 px-2.5 py-1 rounded border border-slate-800">Dept: ${dept}</span>` : ''}
+              </div>
+              <p class="text-slate-300 text-sm leading-relaxed max-w-3xl mx-auto px-4 mt-3">${citation}</p>
+              ${rank ? `<div class="mt-3 inline-block bg-gradient-to-r from-cyan-500/20 to-purple-500/20 border border-cyan-400/50 text-cyan-200 font-mono font-bold text-xs px-5 py-1.5 rounded uppercase">⚡ Distinction: ${rank} ⚡</div>` : ''}
+            </div>
+
+            <div class="relative z-10 px-12 pb-3 pt-2 flex items-end justify-between border-t border-slate-800">
+              <div class="text-center w-52">
+                <div class="h-14 flex items-end justify-center mb-1"><img src="${sig1}" class="max-h-12 object-contain filter invert brightness-200" /></div>
+                <div class="border-t border-slate-700 pt-1">
+                  <p class="font-bold text-xs text-white uppercase">${coordName}</p>
+                  <p class="text-[10px] text-slate-400">${coordTitle}</p>
+                </div>
+              </div>
+
+              <div class="flex items-center gap-3 bg-slate-900 border border-cyan-800/60 p-2 rounded-lg">
+                <div id="qrcode-box" class="w-14 h-14 bg-white p-0.5 rounded"></div>
+                <div class="text-left font-mono text-[9px] text-slate-300">
+                  <div class="text-cyan-400 font-bold">DIGITALLY VERIFIED</div>
+                  <div>Issued: ${issueDate}</div>
+                </div>
+              </div>
+
+              <div class="text-center w-52">
+                <div class="h-14 flex items-end justify-center mb-1"><img src="${sig2}" class="max-h-12 object-contain filter invert brightness-200" /></div>
+                <div class="border-t border-slate-700 pt-1">
+                  <p class="font-bold text-xs text-white uppercase">${authName}</p>
+                  <p class="text-[10px] text-slate-400">${authTitle}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        `;
+      }
+
+      // TEMPLATE 4: MINIMAL CORPORATE
+      else if (tpl === 'minimal') {
+        html = `
+          <div class="w-full h-full p-10 relative flex flex-col justify-between bg-white text-slate-800 border-[16px] border-slate-100">
+            <div class="absolute top-0 left-0 right-0 h-2 bg-gradient-to-r from-blue-600 via-indigo-600 to-violet-600"></div>
+
+            <div class="relative z-10 flex items-center justify-between border-b border-slate-200 pb-4">
+              <div class="flex items-center gap-3">
+                <img src="${logo}" class="w-12 h-12 object-contain" />
+                <div>
+                  <h2 class="font-bold text-base text-slate-900">${org}</h2>
+                  <p class="text-[11px] text-slate-500 font-medium">Official Certificate of Verification</p>
+                </div>
+              </div>
+              <div class="text-right font-mono text-xs">
+                <span class="bg-slate-100 px-3 py-1 rounded">Ref: ${certId}</span>
+                <p class="text-[10px] text-slate-400 mt-1">Date: ${issueDate}</p>
+              </div>
+            </div>
+
+            <div class="relative z-10 text-center px-12 my-auto">
+              <p class="text-xs font-semibold tracking-widest text-indigo-600 uppercase mb-2">${sub}</p>
+              <h1 class="text-3xl font-extrabold text-slate-900 tracking-tight uppercase">${title}</h1>
+              <div class="my-4"><span class="text-4xl font-extrabold text-slate-900">${name}</span></div>
+              <div class="flex items-center justify-center gap-6 text-xs text-slate-600 mb-3">
+                ${roll ? `<span>ID: <strong>${roll}</strong></span>` : ''}
+                ${dept ? `<span>Department: <strong>${dept}</strong></span>` : ''}
+              </div>
+              <p class="text-sm text-slate-600 leading-relaxed max-w-2xl mx-auto">${citation}</p>
+              ${rank ? `<div class="mt-4 inline-block bg-indigo-50 border border-indigo-200 text-indigo-700 font-bold text-xs px-4 py-1 rounded-full uppercase">Role: ${rank}</div>` : ''}
+            </div>
+
+            <div class="relative z-10 flex items-end justify-between border-t border-slate-200 pt-4">
+              <div class="text-left w-52">
+                <div class="h-12 flex items-end mb-1"><img src="${sig1}" class="max-h-12 object-contain" /></div>
+                <div class="border-t border-slate-300 pt-1">
+                  <p class="font-bold text-xs text-slate-900">${coordName}</p>
+                  <p class="text-[10px] text-slate-500">${coordTitle}</p>
+                </div>
+              </div>
+
+              <div class="flex items-center gap-3">
+                <div id="qrcode-box" class="w-14 h-14 border border-slate-200 p-0.5 rounded"></div>
+                <div class="text-left text-[9px] text-slate-500 font-mono">
+                  <div class="font-bold text-slate-700">Scan to Authenticate</div>
+                  <div>Official Record</div>
+                </div>
+              </div>
+
+              <div class="text-right w-52">
+                <div class="h-12 flex items-end justify-end mb-1"><img src="${sig2}" class="max-h-12 object-contain" /></div>
+                <div class="border-t border-slate-300 pt-1">
+                  <p class="font-bold text-xs text-slate-900">${authName}</p>
+                  <p class="text-[10px] text-slate-500">${authTitle}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        `;
+      }
+
+      // TEMPLATE 5: VIBRANT CULTURAL
+      else if (tpl === 'cultural') {
+        html = `
+          <div class="w-full h-full p-8 relative flex flex-col justify-between bg-gradient-to-br from-rose-50 via-white to-amber-50 text-slate-800">
+            <div class="absolute inset-4 border-[6px] border-rose-900 pointer-events-none"></div>
+            <div class="absolute inset-6 border-[2px] border-amber-500 pointer-events-none"></div>
+
+            <div class="relative z-10 text-center pt-2">
+              <div class="flex items-center justify-center gap-4 mb-2">
+                <img src="${logo}" class="w-16 h-16 object-contain" />
+                <div>
+                  <h2 class="font-cinzel tracking-widest text-lg font-black uppercase text-rose-950">${org}</h2>
+                  <p class="text-[11px] tracking-widest text-amber-700 uppercase font-bold">ANNUAL CULTURAL & SPORTS MEET</p>
+                </div>
+              </div>
+              <h1 class="font-cinzel text-3xl font-black tracking-wider text-rose-900 uppercase mt-1">${title}</h1>
+              <p class="font-playfair text-xs italic tracking-widest text-slate-600 mt-1 uppercase">${sub}</p>
+            </div>
+
+            <div class="relative z-10 text-center px-16 my-auto">
+              <div class="my-2">
+                <span class="font-playfair text-4xl font-black text-rose-950 tracking-wide border-b-2 border-rose-800 pb-1 px-8 inline-block">${name}</span>
+              </div>
+              <div class="flex items-center justify-center gap-6 text-xs text-slate-700 font-serif mb-2">
+                ${roll ? `<span>Participant ID: <strong>${roll}</strong></span>` : ''}
+                ${dept ? `<span>Department: <strong>${dept}</strong></span>` : ''}
+              </div>
+              <p class="font-playfair text-base text-slate-700 leading-relaxed max-w-3xl mx-auto px-4 italic">${citation}</p>
+              ${rank ? `<div class="mt-3 inline-block bg-rose-100 border border-rose-300 text-rose-900 font-cinzel font-black text-xs px-6 py-1.5 rounded-full uppercase">🏆 ${rank} 🏆</div>` : ''}
+            </div>
+
+            <div class="relative z-10 px-12 pb-4 pt-2 flex items-end justify-between">
+              <div class="text-center w-52">
+                <div class="h-14 flex items-end justify-center mb-1"><img src="${sig1}" class="max-h-12 object-contain" /></div>
+                <div class="border-t border-rose-900 pt-1">
+                  <p class="font-cinzel font-bold text-xs text-slate-900 uppercase">${coordName}</p>
+                  <p class="text-[10px] text-slate-600">${coordTitle}</p>
+                </div>
+              </div>
+
+              <div class="flex flex-col items-center justify-center gap-1">
+                <img src="${DEFAULT_SEAL_SVG}" class="w-18 h-18 object-contain drop-shadow" />
+                <div class="text-[9px] font-mono text-slate-700 bg-rose-50 px-2 py-0.5 rounded border border-rose-200">ID: ${certId}</div>
+              </div>
+
+              <div class="flex items-end gap-5">
+                <div class="text-center flex flex-col items-center">
+                  <div id="qrcode-box" class="p-1 bg-white border border-rose-200 rounded shadow-sm"></div>
+                  <span class="text-[8px] text-slate-500 font-mono mt-0.5">SCAN TO VERIFY</span>
+                </div>
+                <div class="text-center w-52">
+                  <div class="h-14 flex items-end justify-center mb-1"><img src="${sig2}" class="max-h-12 object-contain" /></div>
+                  <div class="border-t border-rose-900 pt-1">
+                    <p class="font-cinzel font-bold text-xs text-slate-900 uppercase">${authName}</p>
+                    <p class="text-[10px] text-slate-600">${authTitle}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        `;
+      }
+
+      container.innerHTML = html;
+
+      // Render Dynamic QR Code
+      const qrBox = document.getElementById('qrcode-box');
+      if (qrBox && typeof QRCode !== 'undefined') {
+        qrBox.innerHTML = '';
+        const verifyData = `${window.location.origin}${window.location.pathname}?verify=${certId}`;
+        new QRCode(qrBox, {
+          text: verifyData,
+          width: 56,
+          height: 56,
+          colorDark: '#0f172a',
+          colorLight: '#ffffff',
+          correctLevel: QRCode.CorrectLevel.H
+        });
+      }
+    }
+
+    // Zoom Controls
+    function adjustZoom(delta) {
+      DB.currentZoom = Math.min(1.1, Math.max(0.4, Number((DB.currentZoom + delta).toFixed(2))));
+      document.getElementById('zoom-wrapper').style.transform = `scale(${DB.currentZoom})`;
+      document.getElementById('zoom-level-text').innerText = `${Math.round(DB.currentZoom * 100)}%`;
+    }
+
+    function resetZoom() {
+      DB.currentZoom = 0.70;
+      document.getElementById('zoom-wrapper').style.transform = 'scale(0.70)';
+      document.getElementById('zoom-level-text').innerText = '70%';
+    }
+
+    // Presets
+    function applyPreset(type) {
+      const eventName = document.getElementById('inp-event-name').value;
+      const org = document.getElementById('inp-organization').value;
+      const date = document.getElementById('inp-event-date').value;
+
+      if (type === 'winner1') {
+        document.getElementById('inp-cert-type').value = 'winner';
+        document.getElementById('inp-rank-role').value = '1st Place Winner';
+        document.getElementById('inp-citation-text').value = `For securing First Position in the prestigious ${eventName} organized by ${org} on ${date}.`;
+      } else if (type === 'winner2') {
+        document.getElementById('inp-cert-type').value = 'winner';
+        document.getElementById('inp-rank-role').value = '2nd Place Winner';
+        document.getElementById('inp-citation-text').value = `For securing Second Position in the prestigious ${eventName} organized by ${org} on ${date}.`;
+      } else if (type === 'winner3') {
+        document.getElementById('inp-cert-type').value = 'winner';
+        document.getElementById('inp-rank-role').value = '3rd Place Winner';
+        document.getElementById('inp-citation-text').value = `For securing Third Position in the prestigious ${eventName} organized by ${org} on ${date}.`;
+      } else if (type === 'participation') {
+        document.getElementById('inp-cert-type').value = 'participation';
+        document.getElementById('inp-rank-role').value = 'Participant';
+        document.getElementById('inp-citation-text').value = `In recognition of active participation and notable contribution to ${eventName} held on ${date}.`;
+      } else if (type === 'internship') {
+        document.getElementById('inp-cert-type').value = 'internship';
+        document.getElementById('inp-rank-role').value = 'Engineering Intern';
+        document.getElementById('inp-citation-text').value = `For successfully completing the intensive industrial internship training at ${org} with dedication and excellence.`;
+      } else if (type === 'merit') {
+        document.getElementById('inp-cert-type').value = 'merit';
+        document.getElementById('inp-rank-role').value = 'Academic Honor';
+        document.getElementById('inp-citation-text').value = `Conferred for demonstrating outstanding academic excellence, technical leadership, and scholarly merit.`;
+      }
+      updateLivePreview();
+    }
+
+    function generateNewCertId() {
+      const rand = Math.random().toString(36).substring(2, 7).toUpperCase();
+      document.getElementById('inp-cert-id').value = `CERT-2026-${rand}`;
+      updateLivePreview();
+    }
+
+    function handleImageUpload(e, type) {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        if (type === 'logo') DB.customLogo = event.target.result;
+        if (type === 'sig1') DB.customSig1 = event.target.result;
+        if (type === 'sig2') DB.customSig2 = event.target.result;
+        updateLivePreview();
+      };
+      reader.readAsDataURL(file);
+    }
+
+    // Save to Database
+    function saveCurrentCertificate() {
+      const cert = {
+        id: document.getElementById('inp-cert-id').value,
+        name: document.getElementById('inp-recipient-name').value,
+        roll: document.getElementById('inp-roll-number').value,
+        dept: document.getElementById('inp-department').value,
+        course: document.getElementById('inp-course').value,
+        event: document.getElementById('inp-event-name').value,
+        date: document.getElementById('inp-event-date').value,
+        issueDate: document.getElementById('inp-issue-date').value,
+        org: document.getElementById('inp-organization').value,
+        type: document.getElementById('inp-cert-type').value,
+        rank: document.getElementById('inp-rank-role').value,
+        template: DB.activeTemplate,
+        coord: document.getElementById('inp-coord-name').value,
+        coordTitle: document.getElementById('inp-coord-title').value,
+        auth: document.getElementById('inp-auth-name').value,
+        authTitle: document.getElementById('inp-auth-title').value,
+        citation: document.getElementById('inp-citation-text').value,
+        isValid: true
+      };
+
+      const existingIdx = DB.certificates.findIndex(c => c.id === cert.id);
+      if (existingIdx >= 0) {
+        DB.certificates[existingIdx] = cert;
+      } else {
+        DB.certificates.unshift(cert);
+      }
+      saveDB();
+
+      confetti({ particleCount: 70, spread: 60, origin: { y: 0.6 } });
+      alert(`Certificate ${cert.id} saved to registry successfully!`);
+    }
+
+    // Export PDF, PNG, JPG (Bulletproof Cross-Browser Architecture)
+    async function exportCertificate(type = 'pdf', elementId = 'certificate-canvas-container', filename = null) {
+      const el = document.getElementById(elementId);
+      if (!el) {
+        alert('Certificate canvas not ready. Switching to Certificate Studio...');
+        switchTab('studio');
+        return;
+      }
+
+      const rawName = (document.getElementById('inp-recipient-name')?.value || '').trim() || 'Certificate';
+      const rawId = (document.getElementById('inp-cert-id')?.value || '').trim() || 'ID';
+      const cleanName = rawName.replace(/[^a-zA-Z0-9_-]/g, '_');
+      const cleanId = rawId.replace(/[^a-zA-Z0-9_-]/g, '_');
+      const safeFilename = filename || `${cleanName}_${cleanId}`;
+
+      // Visual button spinner and loading feedback
+      const pdfBtn = document.getElementById('btn-download-pdf');
+      const originalPdfBtnHtml = pdfBtn ? pdfBtn.innerHTML : '';
+      if (pdfBtn && type === 'pdf') {
+        pdfBtn.disabled = true;
+        pdfBtn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin text-amber-400 mr-1"></i> Generating PDF...';
+      }
+
+      // Temporarily reset zoom to scale(1) so html2canvas renders exact full A4 without zoom distortion or clipping
+      const zoomWrapper = document.getElementById('zoom-wrapper');
+      const prevTransform = zoomWrapper ? zoomWrapper.style.transform : '';
+      const prevTransition = zoomWrapper ? zoomWrapper.style.transition : '';
+      if (zoomWrapper) {
+        zoomWrapper.style.transition = 'none';
+        zoomWrapper.style.transform = 'scale(1)';
+      }
+
+      try {
+        let dataUrl;
+
+        // Tier 1: htmlToImage (with skipFonts to prevent CORS/external font fetch issues)
+        if (window.htmlToImage && typeof window.htmlToImage.toPng === 'function') {
+          try {
+            const opts = {
+              pixelRatio: 2,
+              backgroundColor: '#ffffff',
+              skipFonts: true,
+              cacheBust: false,
+              onImageErrorHandler: () => ''
+            };
+            if (type === 'jpg') {
+              dataUrl = await window.htmlToImage.toJpeg(el, { ...opts, quality: 0.95 });
+            } else {
+              dataUrl = await window.htmlToImage.toPng(el, opts);
+            }
+          } catch (primaryErr) {
+            console.warn('htmlToImage encountered an issue, falling back to sanitized html2canvas:', primaryErr);
+          }
+        }
+
+        // Tier 2: html2canvas with oklch sanitizer in onclone
+        if (!dataUrl && typeof html2canvas === 'function') {
+          const canvas = await html2canvas(el, {
+            scale: 2,
+            useCORS: true,
+            allowTaint: false,
+            logging: false,
+            backgroundColor: '#ffffff',
+            onclone: (clonedDoc) => {
+              try {
+                const tempCanvas = document.createElement('canvas');
+                const tempCtx = tempCanvas.getContext('2d');
+
+                const styleTags = clonedDoc.querySelectorAll('style');
+                styleTags.forEach(styleTag => {
+                  if (styleTag.textContent && styleTag.textContent.includes('oklch')) {
+                    styleTag.textContent = styleTag.textContent.replace(/oklch\([^)]+\)/gi, (match) => {
+                      try {
+                        tempCtx.fillStyle = '#000000';
+                        tempCtx.fillStyle = match;
+                        return tempCtx.fillStyle || '#000000';
+                      } catch {
+                        return '#000000';
+                      }
+                    });
+                  }
+                });
+
+                const elementsWithOklch = clonedDoc.querySelectorAll('[style*="oklch"]');
+                elementsWithOklch.forEach(elem => {
+                  const raw = elem.getAttribute('style');
+                  if (raw) {
+                    elem.setAttribute('style', raw.replace(/oklch\([^)]+\)/gi, (match) => {
+                      try {
+                        tempCtx.fillStyle = '#000000';
+                        tempCtx.fillStyle = match;
+                        return tempCtx.fillStyle || '#000000';
+                      } catch {
+                        return '#000000';
+                      }
+                    }));
+                  }
+                });
+              } catch (sanitizeErr) {
+                console.warn('oklch sanitization warning:', sanitizeErr);
+              }
+            }
+          });
+          dataUrl = canvas.toDataURL(type === 'jpg' ? 'image/jpeg' : 'image/png', 0.95);
+        }
+
+        if (!dataUrl) {
+          throw new Error('Could not render certificate canvas. You can click "Print / Save PDF" to generate a direct vector PDF from your browser!');
+        }
+
+        if (type === 'pdf') {
+          const jsPDFClass = (window.jspdf && window.jspdf.jsPDF) ? window.jspdf.jsPDF : window.jsPDF;
+          if (!jsPDFClass) {
+            throw new Error('jsPDF library is not loaded. You can click "Print / Save PDF" to generate a direct vector PDF from your browser!');
+          }
+          const pdf = new jsPDFClass({
+            orientation: 'landscape',
+            unit: 'mm',
+            format: 'a4',
+            compress: true
+          });
+          const imgType = dataUrl.startsWith('data:image/jpeg') ? 'JPEG' : 'PNG';
+          pdf.addImage(dataUrl, imgType, 0, 0, 297, 210, undefined, 'FAST');
+          pdf.save(`${safeFilename}.pdf`);
+          if (typeof confetti === 'function') {
+            confetti({ particleCount: 50, spread: 60, origin: { y: 0.7 } });
+          }
+        } else if (type === 'png') {
+          const link = document.createElement('a');
+          link.download = `${safeFilename}.png`;
+          link.href = dataUrl;
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+        } else if (type === 'jpg') {
+          const link = document.createElement('a');
+          link.download = `${safeFilename}.jpg`;
+          link.href = dataUrl;
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+        }
+      } catch (err) {
+        console.error('Export error:', err);
+        const msg = err?.message || (err?.type ? 'Canvas event error: ' + err.type : String(err || 'Unknown error'));
+        alert('Could not export certificate: ' + msg + '\n\nTip: You can use the "Print / Save PDF" button for an instant, direct browser vector PDF!');
+      } finally {
+        // Restore zoom
+        if (zoomWrapper) {
+          zoomWrapper.style.transform = prevTransform;
+          zoomWrapper.style.transition = prevTransition;
+        }
+        if (pdfBtn && type === 'pdf') {
+          pdfBtn.disabled = false;
+          pdfBtn.innerHTML = originalPdfBtnHtml;
+        }
+      }
+    }
+
+    // Helper for 1-click PDF download directly from Registry or Verification
+    function downloadCertPdfById(id) {
+      previewCertById(id);
+      setTimeout(() => {
+        exportCertificate('pdf');
+      }, 300);
+    }
+
+
+    // ==========================================
+    // INTERACTIVE SIGNATURE DRAWING PAD
+    // ==========================================
+    let sigCanvas, sigCtx, isDrawing = false;
+
+    function openSignaturePadModal() {
+      openModal('sig-pad-modal');
+      sigCanvas = document.getElementById('signature-canvas');
+      sigCtx = sigCanvas.getContext('2d');
+      sigCtx.lineWidth = 2.5;
+      sigCtx.lineCap = 'round';
+      sigCtx.strokeStyle = '#0f172a';
+
+      // Mouse events
+      sigCanvas.onmousedown = (e) => {
+        isDrawing = true;
+        sigCtx.beginPath();
+        sigCtx.moveTo(e.offsetX, e.offsetY);
+      };
+      sigCanvas.onmousemove = (e) => {
+        if (!isDrawing) return;
+        sigCtx.lineTo(e.offsetX, e.offsetY);
+        sigCtx.stroke();
+      };
+      window.onmouseup = () => { isDrawing = false; };
+
+      // Touch events
+      sigCanvas.ontouchstart = (e) => {
+        e.preventDefault();
+        const rect = sigCanvas.getBoundingClientRect();
+        const touch = e.touches[0];
+        isDrawing = true;
+        sigCtx.beginPath();
+        sigCtx.moveTo(touch.clientX - rect.left, touch.clientY - rect.top);
+      };
+      sigCanvas.ontouchmove = (e) => {
+        e.preventDefault();
+        if (!isDrawing) return;
+        const rect = sigCanvas.getBoundingClientRect();
+        const touch = e.touches[0];
+        sigCtx.lineTo(touch.clientX - rect.left, touch.clientY - rect.top);
+        sigCtx.stroke();
+      };
+      sigCanvas.ontouchend = () => { isDrawing = false; };
+    }
+
+    function clearSignatureCanvas() {
+      if (sigCtx) sigCtx.clearRect(0, 0, sigCanvas.width, sigCanvas.height);
+    }
+
+    function applySignatureTo(slot) {
+      const dataUrl = sigCanvas.toDataURL('image/png');
+      if (slot === 'sig1') DB.customSig1 = dataUrl;
+      if (slot === 'sig2') DB.customSig2 = dataUrl;
+      closeModal('sig-pad-modal');
+      updateLivePreview();
+      alert(`Signature applied to ${slot === 'sig1' ? 'Left Coordinator' : 'Right Dean/Principal'} position!`);
+    }
+
+
+    // ==========================================
+    // BULK EXCEL / CSV ENGINE
+    // ==========================================
+    let parsedBulkRows = [];
+
+    function handleBulkFileParsed(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+      document.getElementById('bulk-filename-text').innerText = `File: ${file.name}`;
+
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        try {
+          const data = new Uint8Array(event.target.result);
+          const workbook = XLSX.read(data, { type: 'array' });
+          const firstSheet = workbook.SheetNames[0];
+          parsedBulkRows = XLSX.utils.sheet_to_json(workbook.Sheets[firstSheet]);
+          renderBulkPreview();
+        } catch (err) {
+          alert('Error parsing file: ' + err.message);
+        }
+      };
+      reader.readAsArrayBuffer(file);
+    }
+
+    function renderBulkPreview() {
+      document.getElementById('bulk-rows-count').innerText = parsedBulkRows.length;
+      const tbody = document.getElementById('bulk-preview-table-body');
+      if (!tbody) return;
+
+      if (parsedBulkRows.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5" class="py-8 text-center text-slate-400">No records found in file</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = parsedBulkRows.map((r, i) => `
+        <tr class="hover:bg-slate-50">
+          <td class="py-2.5 px-3 font-mono text-slate-400 text-[10px]">${i + 1}</td>
+          <td class="py-2.5 px-3 font-bold text-slate-900">${r['Name'] || r['Student Name'] || r['name'] || '-'}</td>
+          <td class="py-2.5 px-3 font-mono text-slate-600">${r['Roll Number'] || r['RollNo'] || r['roll_number'] || '-'}</td>
+          <td class="py-2.5 px-3 text-slate-600">${r['Event'] || r['event_name'] || 'Tech Event'}</td>
+          <td class="py-2.5 px-3">
+            <span class="bg-amber-100 text-amber-900 px-2 py-0.5 rounded text-[10px] font-bold">
+              ${r['Rank'] || r['Certificate Type'] || 'Participant'}
+            </span>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    function processBulkGeneration() {
+      if (parsedBulkRows.length === 0) {
+        alert('Please upload an Excel/CSV file with participant rows first.');
+        return;
+      }
+
+      const tpl = document.getElementById('bulk-template-select').value;
+      const org = document.getElementById('bulk-org-name').value;
+      let count = 0;
+
+      parsedBulkRows.forEach(row => {
+        const name = row['Name'] || row['Student Name'] || row['name'];
+        if (!name) return;
+
+        const roll = row['Roll Number'] || row['RollNo'] || row['roll_number'] || '';
+        const dept = row['Department'] || row['department'] || 'Computer Science & Engineering';
+        const course = row['Course'] || row['course'] || 'B.Tech';
+        const eventName = row['Event'] || row['event_name'] || 'College Annual Fest 2026';
+        const certType = (row['Certificate Type'] || row['Type'] || 'participation').toLowerCase();
+        const rank = row['Rank'] || row['Award'] || (certType === 'winner' ? 'Winner' : 'Participant');
+        const randId = 'CERT-2026-BULK-' + Math.random().toString(36).substring(2, 6).toUpperCase();
+
+        const cert = {
+          id: randId,
+          name: String(name).trim(),
+          roll: String(roll).trim().toUpperCase(),
+          dept: String(dept).trim(),
+          course: String(course).trim(),
+          event: String(eventName).trim(),
+          date: '2026-03-15',
+          issueDate: new Date().toISOString().split('T')[0],
+          org: org,
+          type: certType,
+          rank: String(rank).trim(),
+          template: tpl,
+          coord: (document.getElementById('inp-coord-name')?.value || '').trim() || 'Event Coordinator',
+          coordTitle: (document.getElementById('inp-coord-title')?.value || '').trim() || 'Event Convener',
+          auth: (document.getElementById('inp-auth-name')?.value || '').trim() || 'Authorized Signatory',
+          authTitle: (document.getElementById('inp-auth-title')?.value || '').trim() || 'Dean & Principal',
+          citation: `In recognition of exemplary participation and achievements in ${eventName}.`,
+          isValid: true
+        };
+
+        DB.certificates.unshift(cert);
+        count++;
+      });
+
+      saveDB();
+      confetti({ particleCount: 90, spread: 70, origin: { y: 0.6 } });
+      alert(`Batch generation successful! Created ${count} verifiable certificates in database.`);
+      switchTab('registry');
+    }
+
+    function downloadSampleCSV() {
+      const csvContent = "data:text/csv;charset=utf-8," +
+        "Name,Roll Number,Email,Department,Course,Event,Certificate Type,Rank\n" +
+        "Devansh Joshi,22BCS110,devansh.j@college.edu,Computer Science & Engineering,B.Tech CSE,Hackathon Apex 2026,winner,1st Place Winner\n" +
+        "Tanya Saxena,22BCS111,tanya.s@college.edu,Computer Science & Engineering,B.Tech CSE,Hackathon Apex 2026,winner,2nd Place Winner\n" +
+        "Kavya Nair,23BEC050,kavya.n@college.edu,Electronics & Communication,B.Tech ECE,IoT Robotics Bootcamp,participation,Participant\n" +
+        "Aditya Rawat,21BME092,aditya.r@college.edu,Mechanical Engineering,B.Tech Mechanical,CAD 3D Challenge,winner,3rd Place Winner\n" +
+        "Rhea Sen,22BCS115,rhea.s@college.edu,Computer Science & Engineering,B.Tech CSE,Cloud Computing Internship,internship,Cloud Engineer Intern\n";
+
+      const encodedUri = encodeURI(csvContent);
+      const link = document.createElement("a");
+      link.setAttribute("href", encodedUri);
+      link.setAttribute("download", "bulk_certificates_sample.csv");
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+
+    function downloadSampleExcel() {
+      const data = [
+        { "Name": "Devansh Joshi", "Roll Number": "22BCS110", "Email": "devansh@college.edu", "Department": "Computer Science & Engineering", "Course": "B.Tech CSE", "Event": "Hackathon Apex 2026", "Certificate Type": "winner", "Rank": "1st Place Winner" },
+        { "Name": "Tanya Saxena", "Roll Number": "22BCS111", "Email": "tanya@college.edu", "Department": "Computer Science & Engineering", "Course": "B.Tech CSE", "Event": "Hackathon Apex 2026", "Certificate Type": "winner", "Rank": "2nd Place Winner" },
+        { "Name": "Kavya Nair", "Roll Number": "23BEC050", "Email": "kavya@college.edu", "Department": "Electronics & Communication", "Course": "B.Tech ECE", "Event": "IoT Robotics Bootcamp", "Certificate Type": "participation", "Rank": "Participant" },
+        { "Name": "Aditya Rawat", "Roll Number": "21BME092", "Email": "aditya@college.edu", "Department": "Mechanical Engineering", "Course": "B.Tech Mech", "Event": "CAD 3D Challenge", "Certificate Type": "winner", "Rank": "3rd Place Winner" },
+        { "Name": "Rhea Sen", "Roll Number": "22BCS115", "Email": "rhea@college.edu", "Department": "Computer Science & Engineering", "Course": "B.Tech CSE", "Event": "Cloud Computing Internship", "Certificate Type": "internship", "Rank": "Cloud Engineer Intern" }
+      ];
+
+      const ws = XLSX.utils.json_to_sheet(data);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, "Participants");
+      XLSX.writeFile(wb, "bulk_certificates_sample.xlsx");
+    }
+
+
+    // ==========================================
+    // EVENTS & PARTICIPANTS ENGINE
+    // ==========================================
+    let currentEventId = 1;
+
+    function renderEventsView() {
+      const container = document.getElementById('events-list-container');
+      if (!container) return;
+
+      if (!DB.events || DB.events.length === 0) {
+        container.innerHTML = `
+          <div class="p-8 text-center text-slate-400 bg-white rounded-2xl border border-dashed border-slate-300 space-y-2">
+            <i class="fa-solid fa-trophy text-3xl text-slate-300 block mb-1"></i>
+            <p class="font-bold text-slate-700 text-xs">No Events Created Yet</p>
+            <p class="text-[11px] text-slate-400">Click "+ Create New Event" above to add an event or competition.</p>
+          </div>
+        `;
+        const panel = document.getElementById('selected-event-panel');
+        if (panel) {
+          panel.innerHTML = `
+            <div class="py-16 text-center text-slate-400 space-y-2">
+              <i class="fa-solid fa-calendar-plus text-4xl text-slate-300 block mb-2"></i>
+              <h3 class="font-bold text-slate-700 text-sm">No Event Selected</h3>
+              <p class="text-xs text-slate-400 max-w-sm mx-auto">Create or select an event to manage participants, assign winners, and batch generate certificates.</p>
+            </div>
+          `;
+        }
+        return;
+      }
+
+      container.innerHTML = DB.events.map(ev => `
+        <div onclick="selectEvent(${ev.id})" class="p-4 rounded-2xl border cursor-pointer transition ${currentEventId === ev.id ? 'border-amber-500 bg-amber-50/50 shadow-md ring-2 ring-amber-500/20' : 'border-slate-200 bg-white hover:border-slate-300'}">
+          <div class="flex items-center justify-between">
+            <span class="text-[10px] font-bold uppercase px-2 py-0.5 rounded-full ${ev.category === 'Hackathon' ? 'bg-purple-100 text-purple-800' : 'bg-blue-100 text-blue-800'}">${ev.category}</span>
+            <span class="text-[11px] text-slate-400 font-mono">${ev.date}</span>
+          </div>
+          <h3 class="font-bold text-sm text-slate-900 mt-2">${ev.title}</h3>
+          <div class="flex items-center justify-between text-xs text-slate-600 mt-3 pt-2 border-t border-slate-100">
+            <span><i class="fa-solid fa-users mr-1"></i><strong>${ev.participants.length}</strong> participants</span>
+            <span class="text-amber-700 font-bold"><i class="fa-solid fa-trophy mr-1 text-amber-500"></i>${ev.participants.filter(p => p.status === 'Winner').length} winners</span>
+          </div>
+        </div>
+      `).join('');
+
+      renderSelectedEventPanel();
+    }
+
+    function selectEvent(id) {
+      currentEventId = id;
+      renderEventsView();
+    }
+
+    function renderSelectedEventPanel() {
+      const panel = document.getElementById('selected-event-panel');
+      if (!panel) return;
+
+      const ev = DB.events.find(e => e.id === currentEventId);
+      if (!ev) {
+        panel.innerHTML = '<p class="text-slate-400">Select an event</p>';
+        return;
+      }
+
+      panel.innerHTML = `
+        <div class="border-b border-slate-100 pb-5">
+          <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+            <div>
+              <div class="flex items-center gap-2">
+                <span class="bg-slate-900 text-white text-[10px] font-bold uppercase px-2.5 py-0.5 rounded-full">${ev.category}</span>
+                <span class="text-xs text-slate-500 font-mono">Date: ${ev.date}</span>
+              </div>
+              <h2 class="text-xl font-extrabold text-slate-900 mt-1">${ev.title}</h2>
+              <p class="text-xs text-slate-500 mt-0.5">Coordinator: <strong>${ev.coord}</strong> • Dept: ${ev.dept}</p>
+            </div>
+            <button onclick="batchIssueForEvent(${ev.id})" class="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs shadow-md transition">
+              <i class="fa-solid fa-bolt"></i> Generate All Certificates
+            </button>
+          </div>
+        </div>
+
+        <div>
+          <h3 class="text-xs font-bold uppercase text-slate-800 tracking-wider mb-3">Participants & Winners</h3>
+          <div class="overflow-x-auto border border-slate-200 rounded-xl">
+            <table class="w-full text-left text-xs">
+              <thead class="bg-slate-50 text-slate-700 font-semibold border-b">
+                <tr>
+                  <th class="py-2.5 px-3">Participant</th>
+                  <th class="py-2.5 px-3">Roll No</th>
+                  <th class="py-2.5 px-3">Type / Team</th>
+                  <th class="py-2.5 px-3">Award / Rank</th>
+                  <th class="py-2.5 px-3 text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-100">
+                ${ev.participants.map(p => `
+                  <tr class="hover:bg-slate-50">
+                    <td class="py-2.5 px-3 font-bold text-slate-900">${p.name}</td>
+                    <td class="py-2.5 px-3 font-mono text-slate-600">${p.roll || '-'}</td>
+                    <td class="py-2.5 px-3 text-slate-600">${p.type === 'team' ? `<span class="text-indigo-600 font-semibold">Team: ${p.teamName}</span>` : 'Individual'}</td>
+                    <td class="py-2.5 px-3">
+                      ${p.status === 'Winner'
+          ? `<span class="bg-amber-100 text-amber-900 border border-amber-300 px-2.5 py-0.5 rounded-full font-bold text-[10px]">🏆 ${p.rank}</span>`
+          : `<span class="bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full text-[10px]">Participant</span>`
+        }
+                    </td>
+                    <td class="py-2.5 px-3 text-right">
+                      <button onclick="loadParticipantToStudio('${p.name}', '${p.roll}', '${ev.title}', '${p.status === 'Winner' ? 'winner' : 'participation'}', '${p.rank}')" class="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 rounded text-slate-800 text-[10px] font-bold">
+                        Issue Cert
+                      </button>
+                    </td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      `;
+    }
+
+    function batchIssueForEvent(eventId) {
+      const ev = DB.events.find(e => e.id === eventId);
+      if (!ev) return;
+
+      let count = 0;
+      ev.participants.forEach(p => {
+        const cert = {
+          id: `CERT-2026-EV-${Math.random().toString(36).substring(2, 6).toUpperCase()}`,
+          name: p.name,
+          roll: p.roll || '',
+          dept: ev.dept,
+          course: 'B.Tech',
+          event: ev.title,
+          date: ev.date,
+          issueDate: new Date().toISOString().split('T')[0],
+          org: (document.getElementById('inp-organization')?.value || '').trim() || 'Dronacharya College of Engineering',
+          type: p.status === 'Winner' ? 'winner' : 'participation',
+          rank: p.rank,
+          template: p.status === 'Winner' ? 'gold' : 'classic',
+          coord: ev.coord || '',
+          coordTitle: 'Event Coordinator',
+          auth: (document.getElementById('inp-auth-name')?.value || '').trim() || '',
+          authTitle: (document.getElementById('inp-auth-title')?.value || '').trim() || 'Principal',
+          citation: p.status === 'Winner'
+            ? `In recognition of outstanding technical innovation and securing ${p.rank} in ${ev.title}.`
+            : `In recognition of active participation and notable contribution to ${ev.title}.`,
+          isValid: true
+        };
+        DB.certificates.unshift(cert);
+        count++;
+      });
+
+      saveDB();
+      confetti({ particleCount: 80, spread: 60, origin: { y: 0.6 } });
+      alert(`Successfully generated ${count} certificates for ${ev.title}!`);
+      switchTab('registry');
+    }
+
+    function loadParticipantToStudio(name, roll, eventName, type, rank) {
+      document.getElementById('inp-recipient-name').value = name;
+      document.getElementById('inp-roll-number').value = roll;
+      document.getElementById('inp-event-name').value = eventName;
+      document.getElementById('inp-cert-type').value = type;
+      document.getElementById('inp-rank-role').value = rank;
+      generateNewCertId();
+      switchTab('studio');
+    }
+
+    function handleCreateEventSubmit(e) {
+      e.preventDefault();
+      const newEv = {
+        id: Date.now(),
+        title: document.getElementById('modal-ev-title').value,
+        category: document.getElementById('modal-ev-category').value,
+        date: document.getElementById('modal-ev-date').value,
+        dept: document.getElementById('modal-ev-dept').value,
+        coord: document.getElementById('modal-ev-coord').value,
+        participants: []
+      };
+      DB.events.push(newEv);
+      currentEventId = newEv.id;
+      saveDB();
+      closeModal('create-event-modal');
+      renderEventsView();
+    }
+
+
+    // ==========================================
+    // STUDENTS & FACULTY MANAGEMENT
+    // ==========================================
+    function renderStudentsTable() {
+      const search = (document.getElementById('student-search-input')?.value || '').toLowerCase();
+      const dept = document.getElementById('student-dept-filter')?.value || 'All';
+      const tbody = document.getElementById('students-table-body');
+      if (!tbody) return;
+
+      const filtered = DB.students.filter(s => {
+        const matchesSearch = s.name.toLowerCase().includes(search) || s.roll.toLowerCase().includes(search);
+        const matchesDept = dept === 'All' || s.dept === dept;
+        return matchesSearch && matchesDept;
+      });
+
+      document.getElementById('students-badge-count').innerText = `${filtered.length} Enrolled`;
+
+      if (filtered.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="6" class="py-12 text-center text-slate-400">
+              <i class="fa-solid fa-graduation-cap text-3xl mb-2 block text-slate-300"></i>
+              <span class="font-bold text-slate-700 block text-xs">No Students in Database</span>
+              <span class="text-[11px] text-slate-400">Click "+ Add Student" above to enroll students or import via CSV/Excel.</span>
+            </td>
+          </tr>
+        `;
+        return;
+      }
+
+      tbody.innerHTML = filtered.map(s => `
+        <tr class="hover:bg-slate-50">
+          <td class="py-3 px-4 font-mono font-bold text-slate-900">${s.roll}</td>
+          <td class="py-3 px-4 font-semibold text-slate-900">${s.name}</td>
+          <td class="py-3 px-4 text-slate-600">${s.course} • <span class="text-amber-800 font-bold">${s.year}</span></td>
+          <td class="py-3 px-4 text-slate-600">${s.dept}</td>
+          <td class="py-3 px-4 text-slate-500 font-mono text-[11px]">${s.email}</td>
+          <td class="py-3 px-4 text-right">
+            <button onclick="loadStudentToStudio(${s.id})" class="px-2.5 py-1 rounded bg-amber-100 hover:bg-amber-200 text-amber-900 font-bold text-[11px]">
+              <i class="fa-solid fa-award mr-1"></i> Issue Cert
+            </button>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    function loadStudentToStudio(studentId) {
+      const s = DB.students.find(st => st.id === studentId);
+      if (!s) return;
+      document.getElementById('inp-recipient-name').value = s.name;
+      document.getElementById('inp-roll-number').value = s.roll;
+      document.getElementById('inp-department').value = s.dept;
+      document.getElementById('inp-course').value = s.course;
+      generateNewCertId();
+      switchTab('studio');
+    }
+
+    function handleAddStudentSubmit(e) {
+      e.preventDefault();
+      const newSt = {
+        id: Date.now(),
+        roll: document.getElementById('modal-st-roll').value.trim().toUpperCase(),
+        name: document.getElementById('modal-st-name').value.trim(),
+        course: document.getElementById('modal-st-course').value,
+        year: document.getElementById('modal-st-year').value,
+        dept: document.getElementById('modal-st-dept').value,
+        email: document.getElementById('modal-st-email').value
+      };
+      DB.students.push(newSt);
+      saveDB();
+      closeModal('add-student-modal');
+      renderStudentsTable();
+      populateAutofills();
+    }
+
+    function renderFacultyCards() {
+      const grid = document.getElementById('faculty-cards-grid');
+      if (!grid) return;
+
+      if (!DB.faculty || DB.faculty.length === 0) {
+        grid.innerHTML = `
+          <div class="col-span-full py-14 text-center text-slate-400 bg-white rounded-3xl border border-dashed border-slate-300 p-8 space-y-2">
+            <i class="fa-solid fa-user-tie text-3xl mb-1 block text-slate-300"></i>
+            <span class="font-bold text-slate-700 block text-sm">No Faculty Signatories Added</span>
+            <span class="text-xs text-slate-400 block max-w-md mx-auto">Click "+ Add Faculty Member" above to register coordinators, deans, and principals with their digital signatures.</span>
+          </div>
+        `;
+        return;
+      }
+
+      grid.innerHTML = DB.faculty.map(f => `
+        <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm space-y-4">
+          <div class="flex items-start justify-between">
+            <div>
+              <span class="text-[10px] font-mono font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded">${f.empId}</span>
+              <h3 class="font-bold text-base text-slate-900 mt-2">${f.name}</h3>
+              <p class="text-xs text-amber-700 font-semibold">${f.designation}</p>
+            </div>
+            ${f.isCoord ? '<span class="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-bold"><i class="fa-solid fa-shield-halved mr-1"></i> Coordinator</span>' : ''}
+          </div>
+          <div class="space-y-1.5 text-xs text-slate-600 pt-2 border-t">
+            <div><i class="fa-solid fa-building mr-2 text-slate-400"></i>${f.dept}</div>
+            <div class="font-mono text-[11px]"><i class="fa-solid fa-envelope mr-2 text-slate-400"></i>${f.email}</div>
+          </div>
+          <div class="pt-2 border-t flex items-center justify-between">
+            <span class="text-[10px] text-slate-400">Digital Signature</span>
+            <div class="h-8 max-w-[120px] flex items-center">
+              <img src="${f.sig || DEFAULT_SIG_COORD}" class="max-h-7 object-contain" />
+            </div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function handleAddFacultySubmit(e) {
+      e.preventDefault();
+      const newFac = {
+        id: Date.now(),
+        empId: document.getElementById('modal-fac-id').value.trim().toUpperCase(),
+        name: document.getElementById('modal-fac-name').value.trim(),
+        dept: document.getElementById('modal-fac-dept').value,
+        designation: document.getElementById('modal-fac-title').value,
+        email: document.getElementById('modal-fac-email').value,
+        isCoord: true,
+        sig: DEFAULT_SIG_COORD
+      };
+      DB.faculty.push(newFac);
+      saveDB();
+      closeModal('add-faculty-modal');
+      renderFacultyCards();
+    }
+
+
+    // ==========================================
+    // REGISTRY & REVOCATION
+    // ==========================================
+    function renderRegistryTable() {
+      const search = (document.getElementById('registry-search-input')?.value || '').toLowerCase();
+      const type = document.getElementById('registry-type-filter')?.value || 'all';
+      const tbody = document.getElementById('registry-table-body');
+      if (!tbody) return;
+
+      const filtered = DB.certificates.filter(c => {
+        const matchesSearch = c.id.toLowerCase().includes(search) || c.name.toLowerCase().includes(search) || c.event.toLowerCase().includes(search);
+        const matchesType = type === 'all' || c.type === type;
+        return matchesSearch && matchesType;
+      });
+
+      document.getElementById('registry-count-badge').innerText = `${filtered.length} Records`;
+
+      if (filtered.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="6" class="py-14 text-center text-slate-400">
+              <i class="fa-solid fa-folder-open text-3xl mb-2 block text-slate-300"></i>
+              <span class="font-bold text-slate-700 block text-xs">Master Registry is Empty</span>
+              <span class="text-[11px] text-slate-400">Design certificates in Certificate Studio or generate in bulk to see registered certificates here.</span>
+            </td>
+          </tr>
+        `;
+        return;
+      }
+
+      tbody.innerHTML = filtered.map(c => `
+        <tr class="hover:bg-slate-50">
+          <td class="py-3 px-4 font-mono font-bold text-slate-900">
+            <div>${c.id}</div>
+            <span class="text-[10px] text-slate-400 font-normal">Issued: ${c.issueDate}</span>
+          </td>
+          <td class="py-3 px-4">
+            <div class="font-bold text-slate-900">${c.name}</div>
+            <div class="text-[10px] text-slate-500 font-mono">${c.roll || 'N/A'} • ${c.dept}</div>
+          </td>
+          <td class="py-3 px-4">
+            <div class="font-semibold text-slate-800">${c.event}</div>
+            <div class="text-[10px] text-slate-500">${c.org}</div>
+          </td>
+          <td class="py-3 px-4">
+            <span class="px-2.5 py-0.5 rounded-full font-bold text-[10px] uppercase ${c.type === 'winner' ? 'bg-amber-100 text-amber-900 border border-amber-300' : 'bg-emerald-100 text-emerald-900'}">
+              ${c.rank || c.type}
+            </span>
+          </td>
+          <td class="py-3 px-4">
+            ${c.isValid
+          ? '<span class="text-emerald-700 font-bold text-[11px]"><i class="fa-solid fa-check-circle mr-1"></i> Valid</span>'
+          : '<span class="text-rose-700 font-bold text-[11px]"><i class="fa-solid fa-times-circle mr-1"></i> Revoked</span>'}
+          </td>
+          <td class="py-3 px-4 text-right space-x-1">
+            <button onclick="downloadCertPdfById('${c.id}')" class="p-1.5 text-slate-700 hover:text-amber-600 hover:bg-amber-50 rounded" title="Instant Download PDF">
+              <i class="fa-solid fa-download"></i>
+            </button>
+            <button onclick="previewCertById('${c.id}')" class="p-1.5 text-slate-600 hover:text-amber-600 hover:bg-amber-50 rounded" title="View / Edit in Studio">
+              <i class="fa-solid fa-eye"></i>
+            </button>
+            <button onclick="verifyById('${c.id}')" class="p-1.5 text-slate-600 hover:text-emerald-600 hover:bg-emerald-50 rounded" title="Open Verification Report">
+              <i class="fa-solid fa-shield-halved"></i>
+            </button>
+            <button onclick="toggleCertStatus('${c.id}')" class="p-1.5 text-slate-400 hover:text-rose-600 rounded" title="${c.isValid ? 'Revoke Validity' : 'Reactivate'}">
+              <i class="fa-solid fa-ban"></i>
+            </button>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    function toggleCertStatus(id) {
+      const c = DB.certificates.find(item => item.id === id);
+      if (!c) return;
+      c.isValid = !c.isValid;
+      saveDB();
+      renderRegistryTable();
+      alert(`Certificate ${id} validity updated to ${c.isValid ? 'VALID' : 'REVOKED'}.`);
+    }
+
+    function previewCertById(id) {
+      const c = DB.certificates.find(item => item.id === id);
+      if (!c) return;
+
+      document.getElementById('inp-cert-id').value = c.id;
+      document.getElementById('inp-recipient-name').value = c.name;
+      document.getElementById('inp-roll-number').value = c.roll;
+      document.getElementById('inp-department').value = c.dept;
+      document.getElementById('inp-course').value = c.course;
+      document.getElementById('inp-event-name').value = c.event;
+      document.getElementById('inp-organization').value = c.org;
+      document.getElementById('inp-cert-type').value = c.type;
+      document.getElementById('inp-rank-role').value = c.rank;
+      document.getElementById('inp-issue-date').value = c.issueDate;
+      document.getElementById('inp-citation-text').value = c.citation;
+
+      setTemplate(c.template || 'gold');
+      switchTab('studio');
+    }
+
+
+    // ==========================================
+    // PUBLIC QR VERIFICATION PORTAL
+    // ==========================================
+    function handleVerifySubmit(e) {
+      e.preventDefault();
+      const id = document.getElementById('verify-search-input').value.trim();
+      verifyById(id);
+    }
+
+    function verifyById(id) {
+      const targetId = id.trim().toUpperCase();
+      document.getElementById('verify-search-input').value = targetId;
+      switchTab('verify');
+
+      const panel = document.getElementById('verify-result-panel');
+      panel.classList.remove('hidden');
+
+      const c = DB.certificates.find(item => item.id.toUpperCase() === targetId);
+
+      if (!c) {
+        panel.innerHTML = `
+          <div class="bg-white rounded-3xl border-2 border-rose-300 p-8 shadow-xl text-center space-y-3">
+            <div class="w-16 h-16 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center mx-auto text-2xl font-bold">
+              <i class="fa-solid fa-xmark"></i>
+            </div>
+            <h2 class="text-2xl font-black text-rose-950">CERTIFICATE NOT FOUND</h2>
+            <p class="text-xs text-slate-600">The certificate ID "${targetId}" is not present in the college master registry. It may be fraudulent.</p>
+          </div>
+        `;
+        return;
+      }
+
+      if (!c.isValid) {
+        panel.innerHTML = `
+          <div class="bg-white rounded-3xl border-2 border-rose-400 p-8 shadow-xl text-center space-y-3">
+            <div class="w-16 h-16 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center mx-auto text-2xl font-bold">
+              <i class="fa-solid fa-ban"></i>
+            </div>
+            <h2 class="text-2xl font-black text-rose-950">OFFICIALLY REVOKED</h2>
+            <p class="text-xs text-rose-800">This certificate was originally issued to <strong>${c.name}</strong>, but has been <strong>REVOKED</strong> by the college authorities.</p>
+          </div>
+        `;
+        return;
+      }
+
+      // Valid Certificate Found
+      panel.innerHTML = `
+        <div class="bg-white rounded-3xl border-2 border-emerald-500/40 p-6 sm:p-8 shadow-xl space-y-6">
+          <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-emerald-50 border border-emerald-200 p-4 rounded-2xl">
+            <div class="flex items-center gap-3">
+              <div class="w-12 h-12 rounded-2xl bg-emerald-600 text-white flex items-center justify-center text-2xl shadow-lg shadow-emerald-600/30">
+                <i class="fa-solid fa-check"></i>
+              </div>
+              <div>
+                <div class="flex items-center gap-2">
+                  <h2 class="text-lg font-black text-emerald-950">OFFICIALLY VERIFIED & AUTHENTIC</h2>
+                  <span class="px-2 py-0.5 rounded-full bg-emerald-200 text-emerald-900 font-bold text-[10px] uppercase">Verified</span>
+                </div>
+                <p class="text-xs text-emerald-800 mt-0.5">This certificate record is authenticated and registered in the college accreditation ledger.</p>
+              </div>
+            </div>
+            <button onclick="previewCertById('${c.id}')" class="px-4 py-2 rounded-xl bg-slate-900 text-white font-bold text-xs hover:bg-slate-800 transition">
+              <i class="fa-solid fa-file-pdf text-amber-400 mr-1"></i> View / Download PDF
+            </button>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 text-xs">
+            <div class="p-4 bg-slate-50 rounded-2xl border">
+              <span class="text-[10px] font-bold text-slate-400 uppercase block">Certificate ID</span>
+              <p class="text-sm font-mono font-bold text-slate-900 mt-1">${c.id}</p>
+              <span class="text-[10px] text-slate-500">Issued: ${c.issueDate}</span>
+            </div>
+            <div class="p-4 bg-slate-50 rounded-2xl border">
+              <span class="text-[10px] font-bold text-slate-400 uppercase block">Recipient</span>
+              <p class="text-sm font-bold text-slate-900 mt-1">${c.name}</p>
+              <span class="text-[10px] text-slate-500 font-mono">Roll: ${c.roll || 'N/A'} • ${c.course}</span>
+            </div>
+            <div class="p-4 bg-slate-50 rounded-2xl border">
+              <span class="text-[10px] font-bold text-slate-400 uppercase block">Event & Distinction</span>
+              <p class="text-sm font-bold text-amber-800 mt-1">${c.rank || c.type}</p>
+              <span class="text-[10px] text-slate-600 block truncate">${c.event}</span>
+            </div>
+            <div class="p-4 bg-slate-50 rounded-2xl border">
+              <span class="text-[10px] font-bold text-slate-400 uppercase block">Organization</span>
+              <p class="text-xs font-bold text-slate-900 mt-1">${c.org}</p>
+            </div>
+            <div class="p-4 bg-slate-50 rounded-2xl border">
+              <span class="text-[10px] font-bold text-slate-400 uppercase block">Coordinator</span>
+              <p class="text-xs font-bold text-slate-900 mt-1">${c.coord}</p>
+              <span class="text-[10px] text-slate-500">${c.coordTitle}</span>
+            </div>
+            <div class="p-4 bg-slate-50 rounded-2xl border">
+              <span class="text-[10px] font-bold text-slate-400 uppercase block">Authorized Authority</span>
+              <p class="text-xs font-bold text-slate-900 mt-1">${c.auth}</p>
+              <span class="text-[10px] text-slate-500">${c.authTitle}</span>
+            </div>
+          </div>
+
+          <div class="bg-amber-50/60 p-4 rounded-2xl border border-amber-200">
+            <span class="text-[10px] font-bold text-amber-900 uppercase block">Official Citation</span>
+            <p class="text-xs font-serif italic text-slate-800 mt-1">"${c.citation}"</p>
+          </div>
+        </div>
+      `;
+    }
+
+
+    // ==========================================
+    // DASHBOARD & AUTOFILL HELPERS
+    // ==========================================
+    function updateDashboardStats() {
+      document.getElementById('stat-total-certs').innerText = DB.certificates.length;
+      document.getElementById('stat-total-events').innerText = DB.events.length;
+      document.getElementById('stat-total-students').innerText = DB.students.length;
+      document.getElementById('stat-total-faculty').innerText = DB.faculty.length;
+
+      const tbody = document.getElementById('dashboard-recent-table');
+      if (!tbody) return;
+
+      const recents = DB.certificates.slice(0, 5);
+      if (recents.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="5" class="py-12 text-center text-slate-400">
+              <i class="fa-solid fa-file-circle-question text-3xl mb-2 block text-slate-300"></i>
+              <span class="font-bold text-slate-700 block text-xs">No Certificates Issued Yet</span>
+              <span class="text-[11px] text-slate-400">Open Certificate Studio to generate, customize, and download certificates.</span>
+            </td>
+          </tr>
+        `;
+        return;
+      }
+      tbody.innerHTML = recents.map(c => `
+        <tr class="hover:bg-slate-50">
+          <td class="py-2.5 px-3 font-mono font-bold text-slate-800">${c.id}</td>
+          <td class="py-2.5 px-3 font-bold text-slate-900">${c.name}</td>
+          <td class="py-2.5 px-3 text-slate-600 truncate max-w-[180px]">${c.event}</td>
+          <td class="py-2.5 px-3">
+            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${c.type === 'winner' ? 'bg-amber-100 text-amber-900' : 'bg-emerald-100 text-emerald-900'}">
+              ${c.rank || c.type}
+            </span>
+          </td>
+          <td class="py-2.5 px-3 text-right">
+            <button onclick="downloadCertPdfById('${c.id}')" class="p-1.5 text-slate-700 hover:text-amber-600 mr-1" title="Instant Download PDF">
+              <i class="fa-solid fa-download"></i>
+            </button>
+            <button onclick="previewCertById('${c.id}')" class="p-1.5 text-slate-500 hover:text-amber-600" title="View in Studio">
+              <i class="fa-solid fa-eye"></i>
+            </button>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    function populateAutofills() {
+      const studSelect = document.getElementById('studio-autofill-student');
+      if (studSelect) {
+        studSelect.innerHTML = '<option value="">Autofill from Student DB</option>' +
+          DB.students.map(s => `<option value="${s.id}">${s.name} (${s.roll})</option>`).join('');
+      }
+
+      const evSelect = document.getElementById('studio-autofill-event');
+      if (evSelect) {
+        evSelect.innerHTML = '<option value="">Autofill from Events</option>' +
+          DB.events.map(e => `<option value="${e.id}">${e.title}</option>`).join('');
+      }
+    }
+
+    function autofillFromStudent(id) {
+      const s = DB.students.find(item => item.id == id);
+      if (!s) return;
+      document.getElementById('inp-recipient-name').value = s.name;
+      document.getElementById('inp-roll-number').value = s.roll;
+      document.getElementById('inp-department').value = s.dept;
+      document.getElementById('inp-course').value = s.course;
+      updateLivePreview();
+    }
+
+    function autofillFromEvent(id) {
+      const e = DB.events.find(item => item.id == id);
+      if (!e) return;
+      document.getElementById('inp-event-name').value = e.title;
+      document.getElementById('inp-event-date').value = e.date;
+      document.getElementById('inp-coord-name').value = e.coord;
+      updateLivePreview();
+    }
+
+    // Initialization on window load
+    window.onload = function () {
+      populateAutofills();
+      updateDashboardStats();
+      updateLivePreview();
+
+      const urlParams = new URLSearchParams(window.location.search);
+      if (urlParams.get('verify')) {
+        verifyById(urlParams.get('verify'));
+      }
+    };
+  </script>
+</body>
+
+</html>

@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DCE CertiHub | Launching...</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+  <script>
+    const APP_URL = "http://localhost:3000";
+
+    // Immediate check & redirect
+    async function checkAndRedirect() {
+      try {
+        const statusText = document.getElementById('status-text');
+        if (statusText) statusText.innerText = "Connecting to DCE CertiHub...";
+
+        // Quick fetch to test if Vite server is running
+        await fetch(APP_URL, { mode: 'no-cors' });
+        
+        // If reachable, redirect immediately
+        window.location.replace(APP_URL);
+      } catch (err) {
+        // If not running yet, show instructions
+        document.getElementById('loading-spinner').classList.add('hidden');
+        document.getElementById('server-offline-notice').classList.remove('hidden');
+        document.getElementById('status-text').innerText = "Live Server detected. React server waiting to start.";
+      }
+    }
+
+    // Attempt instant redirect right away
+    checkAndRedirect();
+
+    // Auto-retry polling every 2 seconds in case user just ran the command
+    setInterval(() => {
+      fetch(APP_URL, { mode: 'no-cors' })
+        .then(() => { window.location.replace(APP_URL); })
+        .catch(() => {});
+    }, 2000);
+  </script>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex items-center justify-center p-4 antialiased selection:bg-amber-500 selection:text-slate-950">
+
+  <div class="max-w-lg w-full bg-slate-900 border border-slate-800 rounded-3xl p-8 shadow-2xl relative overflow-hidden text-center">
+    
+    <!-- Background Glow -->
+    <div class="absolute -top-24 -left-24 w-48 h-48 bg-amber-500/10 rounded-full blur-3xl pointer-events-none"></div>
+    <div class="absolute -bottom-24 -right-24 w-48 h-48 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none"></div>
+
+    <!-- App Logo -->
+    <div class="w-16 h-16 mx-auto mb-5 rounded-2xl bg-gradient-to-tr from-amber-500 to-amber-300 flex items-center justify-center shadow-lg shadow-amber-500/20 text-slate-950 font-black text-2xl">
+      <i class="fa-solid fa-award"></i>
+    </div>
+
+    <h1 class="text-2xl font-black tracking-tight text-white mb-2">
+      DCE CertiHub
+    </h1>
+    <p id="status-text" class="text-sm text-slate-400 mb-6 font-medium">
+      Redirecting you to the updated full-stack app...
+    </p>
+
+    <!-- Loading Spinner -->
+    <div id="loading-spinner" class="py-6 flex flex-col items-center justify-center gap-3">
+      <div class="w-10 h-10 border-4 border-amber-500/20 border-t-amber-500 rounded-full animate-spin"></div>
+      <span class="text-xs text-amber-400/80 font-mono">Redirecting to http://localhost:3000...</span>
+    </div>
+
+    <!-- Server Offline Notice (shows only if localhost:3000 is not started yet) -->
+    <div id="server-offline-notice" class="hidden text-left bg-slate-950/70 border border-slate-800 rounded-2xl p-5 mb-5 space-y-4">
+      <div class="flex items-center gap-2.5 text-amber-400 text-xs font-bold uppercase tracking-wider">
+        <i class="fa-solid fa-circle-info"></i>
+        <span>One-step Launch Required</span>
+      </div>
+      <p class="text-xs text-slate-300 leading-relaxed">
+        The updated site is a full-stack React &amp; SQLite application. Run this command in your VS Code terminal to start both backend &amp; frontend:
+      </p>
+
+      <div class="bg-black/60 border border-slate-800 rounded-xl p-3 flex items-center justify-between font-mono text-xs text-emerald-400">
+        <code>npm run dev</code>
+        <button onclick="navigator.clipboard.writeText('npm run dev'); alert('Command copied to clipboard!')" class="text-slate-400 hover:text-white px-2 py-1 rounded bg-slate-800 text-[11px] transition">
+          Copy
+        </button>
+      </div>
+
+      <p class="text-[11px] text-slate-500 text-center">
+        Once started, this window will automatically redirect to the updated site!
+      </p>
+    </div>
+
+    <!-- Quick Action Buttons -->
+    <div class="flex flex-col sm:flex-row gap-3 pt-2">
+      <a href="http://localhost:3000" class="flex-1 inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-sm shadow-lg shadow-amber-500/20 transition">
+        <i class="fa-solid fa-arrow-up-right-from-square"></i>
+        <span>Open Updated Site</span>
+      </a>
+      <a href="index.prototype.html" class="inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold text-xs border border-slate-700/60 transition">
+        <span>Old Prototype</span>
+      </a>
+    </div>
+
+  </div>
+
+</body>
+</html>
